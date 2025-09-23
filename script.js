@@ -8,71 +8,98 @@ async function fetchGoogleReviews() {
     const reviewsContainer = document.getElementById('googleReviews');
     if (!reviewsContainer) return;
 
-    // Show loading state
+    // Mostrar estado de carregamento
     reviewsContainer.innerHTML = `
         <div class="loading-reviews">
             <div class="spinner"></div>
-            <p>Loading testimonials...</p>
+            <p>Carregando depoimentos...</p>
         </div>
     `;
 
     try {
-        // Sample data (replace with actual Google API call)
-        const mockReviews = [
-            {
-                author_name: 'Satisfied Customer',
-                rating: 5,
-                text: 'Excellent service! My home has never been cleaner. The team was very professional and attentive. I highly recommend Magic Clean!',
-                relative_time_description: '2 weeks ago',
-                profile_photo_url: 'https://randomuser.me/api/portraits/women/32.jpg'
-            },
-            {
-                author_name: 'Maria Silva',
-                rating: 5,
-                text: 'Very professional and attentive team. They did an excellent job cleaning my apartment. Everything was spotless!',
-                relative_time_description: '1 month ago',
-                profile_photo_url: 'https://randomuser.me/api/portraits/women/44.jpg'
-            },
-            {
-                author_name: 'John Smith',
-                rating: 4,
-                text: 'Great service and fair prices. My home was left spotless! I will definitely hire them again.',
-                relative_time_description: '2 months ago',
-                profile_photo_url: 'https://randomuser.me/api/portraits/men/32.jpg'
-            },
-            {
-                author_name: 'Anna Johnson',
-                rating: 5,
-                text: 'Exceptional cleaning service! The team was very attentive and thorough. Highly recommend!',
-                relative_time_description: '3 weeks ago',
-                profile_photo_url: 'https://randomuser.me/api/portraits/women/28.jpg'
-            },
-            {
-                author_name: 'Michael Brown',
-                rating: 5,
-                text: 'Hired them for post-construction cleaning and was impressed with the results. All the dirt and dust were completely removed!',
-                relative_time_description: '1 month ago',
-                profile_photo_url: 'https://randomuser.me/api/portraits/men/45.jpg'
-            }
-        ];
+        // Chave de API (em um ambiente real, use variáveis de ambiente ou um backend seguro)
+        const apiKey = 'AIzaSyB32DWthl67HhmROWotpAWVYKgeEG7CyFI';
+        // Place ID do Google Meu Negócio (apenas o ID, sem quebras de linha ou endereço)
+        const placeId = 'EigxMDg4IFppb24gRHIsIEhhaW5lcyBDaXR5LCBGTCAzMzg0NCwgVVNBIjESLwoUChIJ_8o-CV5x3YgRUV_LyJpE7J4QwAgqFAoSCVEFOQlecd2IEZ_peWDZFt-f';
+        
+        // URL da API do Google Places para buscar avaliações
+        const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=reviews,user_ratings_total,rating&key=${apiKey}`;
 
-        // Renderizar depoimentos
-        renderReviews(mockReviews);
-        
-        // Inicializar o carrossel
-        // Inicializa o carrossel
-        initTestimonialSlider();
-        
+        console.log('URL da API:', url); // Log para depuração
+
+        // Fazer a requisição para a API do Google Places
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Resposta da API:', data); // Log da resposta completa
+
+        if (data.status === 'OK' && data.result) {
+            console.log('Status: OK');
+            console.log('Número de avaliações encontradas:', data.result.reviews ? data.result.reviews.length : 0);
+
+            if (!data.result.reviews || data.result.reviews.length === 0) {
+                console.warn('Nenhuma avaliação encontrada. Verifique se as avaliações estão ativadas no Google Meu Negócio.');
+                showNoReviewsMessage(placeId);
+                return;
+                `;
+                return [];
+            }
+            // Mapear os dados da API para o formato esperado
+            const reviews = data.result.reviews.map(review => ({
+                author_name: review.author_name,
+                rating: review.rating,
+                text: review.text,
+                relative_time_description: review.relative_time_description,
+                profile_photo_url: review.profile_photo_url || 'https://via.placeholder.com/50/4CAF50/FFFFFF?text=' + (review.author_name ? review.author_name.charAt(0).toUpperCase() : 'U'),
+                time: review.time || Date.now()
+            }));
+            
+            // Ordenar por data (mais recentes primeiro)
+            reviews.sort((a, b) => b.time - a.time);
+            
+            return reviews;
+            
+            // Inicializar o carrossel
+            initTestimonialSlider();
+        } else {
+            throw new Error('Não foi possível carregar os depoimentos. Por favor, tente novamente mais tarde.');
+        }
     } catch (error) {
-        console.error('Error loading reviews:', error);
+        console.error('Erro ao carregar depoimentos:', error);
+        
+        // Se houver erro, mostrar mensagem amigável e botão para ver no Google
         reviewsContainer.innerHTML = `
-            <div class="error-loading">
-                <i class="fas fa-exclamation-triangle"></i>
-                <p>Unable to load reviews at this time.</p>
-                <small>${error.message}</small>
+            <div class="error-loading" style="text-align: center; padding: 30px;">
+                <i class="fas fa-exclamation-triangle" style="font-size: 40px; color: #ff9800; margin-bottom: 15px;"></i>
+                <p>Não foi possível carregar os depoimentos no momento.</p>
+                <p>Você pode ver nossos depoimentos diretamente no Google:</p>
+                <a href="https://search.google.com/local/reviews?placeid=SEU_PLACE_ID" 
+                   target="_blank" 
+                   rel="noopener noreferrer" 
+                   class="btn btn-primary"
+                   style="margin-top: 15px;">
+                    Ver Depoimentos no Google
+                </a>
             </div>
         `;
     }
+}
+
+function showErrorMessage(message) {
+    const reviewsContainer = document.getElementById('googleReviews');
+    if (!reviewsContainer) return;
+    
+    reviewsContainer.innerHTML = `
+        <div class="error-message" style="text-align: center; padding: 20px; color: #721c24; background-color: #f8d7da; border-radius: 5px; margin: 10px 0;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p>${message}</p>
+            <p><small>Se o problema persistir, entre em contato com o suporte.</small></p>
+        </div>
+    `;
 }
 
 // Função para renderizar os depoimentos

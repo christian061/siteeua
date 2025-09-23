@@ -205,10 +205,10 @@
                 </div>
                 
                 <div class="more-reviews">
-                    <a href="https://search.google.com/local/writereview?placeid=YOUR_PLACE_ID" target="_blank" rel="noopener" class="btn btn-primary">
+                    <a href="https://search.google.com/local/writereview?placeid=EigxMDg4IFppb24gRHIsIEhhaW5lcyBDaXR5LCBGTCAzMzg0NCwgVVNBIjESLwoUChIJ_8o-CV5x3YgRUV_LyJpE7J4QwAgqFAoSCVEFOQlecd2IEZ_peWDZFt-f" target="_blank" rel="noopener" class="btn btn-primary">
                         <i class="fab fa-google"></i> Leave a Review
                     </a>
-                    <a href="https://search.google.com/local/reviews?placeid=YOUR_PLACE_ID" target="_blank" rel="noopener" class="btn btn-secondary">
+                    <a href="https://search.google.com/local/reviews?placeid=EigxMDg4IFppb24gRHIsIEhhaW5lcyBDaXR5LCBGTCAzMzg0NCwgVVNBIjESLwoUChIJ_8o-CV5x3YgRUV_LyJpE7J4QwAgqFAoSCVEFOQlecd2IEZ_peWDZFt-f" target="_blank" rel="noopener" class="btn btn-secondary">
                         See All Reviews
                     </a>
                 </div>
@@ -265,18 +265,26 @@
                     </div>
                 </div>
                 <div class="contact-form">
-                    <form id="contactForm">
+                    <form id="contactForm" aria-label="Contact form">
                         <div class="form-group">
-                            <input type="text" id="name" name="name" placeholder="Your Name" required>
+                            <label for="name" class="sr-only">Your Name</label>
+                            <input type="text" id="name" name="name" placeholder="Your Name" required
+                                   autocomplete="name" aria-required="true">
                         </div>
                         <div class="form-group">
-                            <input type="email" id="email" name="email" placeholder="Your Email" required>
+                            <label for="email" class="sr-only">Your Email</label>
+                            <input type="email" id="email" name="email" placeholder="Your Email" required
+                                   autocomplete="email" aria-required="true">
                         </div>
                         <div class="form-group">
-                            <input type="tel" id="phone" name="phone" placeholder="Your Phone" required>
+                            <label for="phone" class="sr-only">Your Phone</label>
+                            <input type="tel" id="phone" name="phone" placeholder="Your Phone" 
+                                   autocomplete="tel" aria-required="true" required>
                         </div>
                         <div class="form-group">
-                            <select id="service" name="service" required>
+                            <label for="service" class="sr-only">Select a Service</label>
+                            <select id="service" name="service" required aria-required="true"
+                                    aria-label="Select a service">
                                 <option value="" disabled selected>Select a Service</option>
                                 <option value="deep-cleaning">Deep Cleaning</option>
                                 <option value="residential">Residential Cleaning</option>
@@ -287,7 +295,9 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <textarea id="message" name="message" rows="4" placeholder="Tell us about your cleaning needs" required></textarea>
+                            <label for="message" class="sr-only">Your Message</label>
+                            <textarea id="message" name="message" placeholder="Your Message" 
+                                     aria-required="true" required></textarea>
                         </div>
                         <button type="submit" class="btn btn-primary">Send Message</button>
                     </form>
@@ -332,9 +342,14 @@
                 <div class="footer-newsletter">
                     <h3>Newsletter</h3>
                     <p>Subscribe for cleaning tips and special offers!</p>
-                    <form class="newsletter-form">
-                        <input type="email" placeholder="Your Email">
-                        <button type="submit"><i class="fas fa-paper-plane"></i></button>
+                    <form class="newsletter-form" aria-label="Newsletter subscription">
+                        <label for="newsletter-email" class="sr-only">Your Email</label>
+                        <input type="email" id="newsletter-email" name="email" placeholder="Your Email"
+                               autocomplete="email" aria-required="true" required>
+                        <button type="submit" aria-label="Subscribe to newsletter">
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i>
+                            <span class="sr-only">Subscribe</span>
+                        </button>
                     </form>
                 </div>
             </div>
@@ -369,5 +384,6 @@
     </div>
 
     <script src="script.js"></script>
+    <script src="google-reviews.js"></script>
 </body>
 </html>
