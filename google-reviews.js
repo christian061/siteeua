@@ -1,14 +1,144 @@
-// Função para buscar depoimentos do Google Meu Negócio
+// Google Reviews Integration for Magic CleanDom
+
+// Function to create star rating HTML
+function createStarRating(rating) {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+    let stars = '';
+    
+    // Add full stars
+    for (let i = 0; i < fullStars; i++) {
+        stars += '★';
+    }
+    
+    // Add half star if needed
+    if (hasHalfStar) {
+        stars += '½';
+    }
+    
+    // Add empty stars
+    const emptyStars = 5 - Math.ceil(rating);
+    for (let i = 0; i < emptyStars; i++) {
+        stars += '☆';
+    }
+    
+    return `<span class="review-rating" style="color: #FFC107; font-size: 18px;">${stars}</span>`;
+}
+
+// Function to format date
+function formatReviewDate(timestamp) {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleDateString('pt-BR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+}
+
+// Function to render reviews
+function renderReviews(reviews) {
+    const reviewsContainer = document.getElementById('googleReviews');
+    if (!reviewsContainer) return;
+    
+    if (!reviews || reviews.length === 0) {
+        reviewsContainer.innerHTML = `
+            <div class="no-reviews" style="text-align: center; padding: 40px;">
+                <p>Nenhum depoimento encontrado.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = `
+        <div class="testimonial-track" style="display: flex; transition: transform 0.3s ease;">
+    `;
+    
+    reviews.forEach((review, index) => {
+        const isActive = index === 0 ? 'active' : '';
+        const stars = createStarRating(review.rating);
+        const reviewDate = formatReviewDate(review.time);
+        
+        html += `
+            <div class="testimonial ${isActive}" style="min-width: 100%; padding: 20px; box-sizing: border-box;">
+                <div class="google-review">
+                    <div class="review-header">
+                        <div>
+                            <h4 class="review-author">${review.author_name}</h4>
+                            ${stars}
+                            <div class="review-date">${reviewDate}</div>
+                        </div>
+                    </div>
+                    <p class="review-text">${review.text}</p>
+                </div>
+            </div>
+        `;
+    });
+    
+    html += `
+        </div>
+        <div class="testimonial-dots" style="text-align: center; margin-top: 20px;">
+            ${reviews.map((_, i) => 
+                `<span class="testimonial-dot ${i === 0 ? 'active' : ''}" 
+                      data-index="${i}" 
+                      style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ddd; margin: 0 5px; cursor: pointer;"></span>`
+            ).join('')}
+        </div>
+    `;
+    
+    reviewsContainer.innerHTML = html;
+    
+    // Initialize carousel
+    initTestimonialCarousel();
+}
+
+// Initialize testimonial carousel
+function initTestimonialCarousel() {
+    const track = document.querySelector('.testimonial-track');
+    const dots = document.querySelectorAll('.testimonial-dot');
+    let currentIndex = 0;
+    
+    if (!track) return;
+    
+    // Update slide position
+    function updateSlide() {
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+            if (index === currentIndex) {
+                dot.style.background = '#4CAF50';
+            } else {
+                dot.style.background = '#ddd';
+            }
+        });
+    }
+    
+    // Dot click event
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => {
+            currentIndex = index;
+            updateSlide();
+        });
+    });
+    
+    // Auto-rotate slides
+    setInterval(() => {
+        currentIndex = (currentIndex + 1) % dots.length;
+        updateSlide();
+    }, 5000);
+}
+
+// Function to fetch Google Reviews
 async function fetchGoogleReviews() {
     console.log('Iniciando fetchGoogleReviews...');
     const reviewsContainer = document.getElementById('googleReviews');
-    console.log('Container encontrado:', reviewsContainer);
+    
     if (!reviewsContainer) {
         console.error('Container #googleReviews não encontrado no DOM');
         return;
     }
-
-    // Mostrar estado de carregamento
+    
+    // Show loading state
     reviewsContainer.innerHTML = `
         <div class="loading-reviews" style="text-align: center; padding: 40px;">
             <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
@@ -17,19 +147,30 @@ async function fetchGoogleReviews() {
     `;
 
     try {
-        // Chave de API do Google Places
-        const apiKey = 'AIzaSyB32DWthl67HhmROWotpAWVYKgeEG7CyFI';
-        // Place ID do Google Meu Negócio (1088 Zion Dr, Haines City, FL 33844, USA)
-        const placeId = 'EigxMDg4IFppb24gRHIsIEhhaW5lcyBDaXR5LCBGTCAzMzg0NCwgVVNBIjESLwoUChIJ_8o-CV5x3YgRUV_LyJpE7J4QwAgqFAoSCVEFOQlecd2IEZ_peWDZFt-f';
+        // Google Places API credentials
+        const apiKey = 'AIzaSyBdMFOSAlHPljt54uGAvyFRh2cIxH_lZ8g';
+        const placeId = 'ChIJVTLH0y7uVUERjS7dceLoJhM';
         
-        console.log('Usando Place ID:', placeId);
-        console.log('Endereço do local: 1088 Zion Dr, Haines City, FL 33844, USA');
+        console.log('Fetching reviews for Place ID:', placeId);
         
-        // URL da API do Google Places com proxy CORS
-        const proxyUrl = 'https://api.allorigins.win/raw?url=';
-        // Tentando incluir todas as revisões, mesmo as marcadas
-        const apiUrl = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,rating,reviews,user_ratings_total,review_summary,user_ratings_total,reviews_visible&reviews_sort=newest&key=${apiKey}`;
-        const url = proxyUrl + encodeURIComponent(apiUrl);
+        // Build the API URL with all necessary parameters
+        const fields = [
+            'name',
+            'rating',
+            'reviews',
+            'user_ratings_total',
+            'formatted_address',
+            'formatted_phone_number',
+            'website'
+        ].join(',');
+        
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const apiUrl = `https://maps.googleapis.com/maps/api/place/details/json?` +
+            `place_id=${encodeURIComponent(placeId)}` +
+            `&fields=${encodeURIComponent(fields)}` +
+            `&reviews_sort=newest` +
+            `&key=${apiKey}`;
+        const url = proxyUrl + apiUrl;
         
         console.log('URL da API com proxy:', url);
         
@@ -37,8 +178,14 @@ async function fetchGoogleReviews() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
         
+        console.log('Fetching from URL:', url);
+        
         const response = await fetch(url, { 
             signal: controller.signal,
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -422,20 +569,109 @@ function showErrorMessage(message) {
     setTimeout(loadSampleReviews, 3000);
 }
 
-// Inicializar quando o DOM estiver pronto
+// Adicionar estilos CSS dinamicamente
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .google-review {
+        background: white;
+        border-radius: 10px;
+        padding: 25px;
+        margin: 15px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .google-review:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    
+    .review-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+    
+    .review-author {
+        font-weight: 600;
+        color: #333;
+        margin: 0;
+    }
+    
+    .review-rating {
+        color: #FFC107;
+        margin: 5px 0;
+        font-size: 18px;
+    }
+    
+    .review-date {
+        color: #888;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    
+    .review-text {
+        color: #555;
+        line-height: 1.6;
+        font-style: italic;
+    }
+`;
+document.head.appendChild(style);
+
+// Load sample reviews if API fails
+function loadSampleReviews() {
+    const sampleReviews = [
+        {
+            author_name: 'Cliente Satisfeito',
+            rating: 5,
+            text: 'Excelente serviço de limpeza! Minha casa nunca esteve tão limpa. A equipe é muito profissional e atenciosa.',
+            time: Math.floor(Date.now() / 1000) - 86400 // 1 day ago
+        },
+        {
+            author_name: 'Maria Silva',
+            rating: 5,
+            text: 'Serviço impecável! Recomendo a todos que buscam qualidade e comprometimento.',
+            time: Math.floor(Date.now() / 1000) - 172800 // 2 days ago
+        },
+        {
+            author_name: 'João Santos',
+            rating: 5,
+            text: 'Profissionais muito competentes e educados. Minha casa ficou brilhando!',
+            time: Math.floor(Date.now() / 1000) - 259200 // 3 days ago
+        }
+    ];
+    
+    renderReviews(sampleReviews);
+}
+
+// Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    // Verificar se o container de depoimentos existe na página
     const reviewsContainer = document.getElementById('googleReviews');
+    
     if (reviewsContainer) {
-        // Tentar carregar os depoimentos do Google
-        fetchGoogleReviews();
+        // First try to fetch real reviews
+        fetchGoogleReviews().catch(error => {
+            console.error('Error fetching Google reviews:', error);
+            // If there's an error, show sample reviews
+            loadSampleReviews();
+        });
         
-        // Se após 5 segundos ainda estiver carregando, mostrar mensagem
-        setTimeout(() => {
+        // If loading takes too long, show a message
+        const loadingTimeout = setTimeout(() => {
             if (reviewsContainer.querySelector('.loading-reviews')) {
-                console.log('Ainda carregando depoimentos...');
+                console.log('Still loading reviews...');
             }
         }, 5000);
+        
+        // Clean up timeout when component unmounts
+        return () => {
+            clearTimeout(loadingTimeout);
+        };
     }
 });
 
@@ -443,7 +679,7 @@ document.addEventListener('DOMContentLoaded', function() {
 const loadingStyles = document.createElement('style');
 loadingStyles.textContent = `
     @keyframes spin {
-        0% { transform: rotate(0deg); }
+{{ ... }}
         100% { transform: rotate(360deg); }
     }
     
