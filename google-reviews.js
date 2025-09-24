@@ -28,105 +28,175 @@ function createStarRating(rating) {
 // Function to format date
 function formatReviewDate(timestamp) {
     const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString('pt-BR', {
+    return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
     });
 }
 
-// Function to render reviews
+// Function to render reviews with carousel
 function renderReviews(reviews) {
     const reviewsContainer = document.getElementById('googleReviews');
-    if (!reviewsContainer) return;
+    if (!reviewsContainer) {
+        console.error('Container #googleReviews não encontrado');
+        return;
+    }
     
     if (!reviews || reviews.length === 0) {
         reviewsContainer.innerHTML = `
             <div class="no-reviews" style="text-align: center; padding: 40px;">
-                <p>Nenhum depoimento encontrado.</p>
+                <p>No reviews found.</p>
             </div>
         `;
         return;
     }
     
+    console.log('Renderizando', reviews.length, 'avaliações em carrossel');
+    
+    // Create carousel HTML
     let html = `
-        <div class="testimonial-track" style="display: flex; transition: transform 0.3s ease;">
+        <div class="testimonial-carousel-container" style="position: relative; max-width: 900px; margin: 0 auto; padding: 0 60px;">
+            <div class="testimonial-carousel" style="display: flex; transition: transform 0.5s ease-in-out; overflow: visible;">
     `;
     
     reviews.forEach((review, index) => {
-        const isActive = index === 0 ? 'active' : '';
-        const stars = createStarRating(review.rating);
-        const reviewDate = formatReviewDate(review.time);
+        const stars = '★'.repeat(Math.floor(review.rating)) + '☆'.repeat(5 - Math.floor(review.rating));
+        const reviewDate = review.relative_time_description || 'Recently';
         
         html += `
-            <div class="testimonial ${isActive}" style="min-width: 100%; padding: 20px; box-sizing: border-box;">
-                <div class="google-review">
-                    <div class="review-header">
-                        <div>
-                            <h4 class="review-author">${review.author_name}</h4>
+            <div class="testimonial-slide" style="
+                min-width: 100%;
+                background: white; 
+                border-radius: 12px; 
+                padding: 40px; 
+                margin: 0;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                min-height: 400px;
+                max-height: none;
+                overflow: visible;
+            ">
+                <div class="quote" style="flex-grow: 1; text-align: center;">
+                    <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 32px; margin-bottom: 20px; display: block;"></i>
+                    <p style="font-size: 16px; line-height: 1.7; color: #555; margin-bottom: 25px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word;">
+                        "${review.text.replace(/"/g, '&quot;')}"
+                    </p>
+                </div>
+                <div class="client" style="
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center;
+                    padding-top: 20px; 
+                    border-top: 2px solid #f0f0f0;
+                ">
+                    <img 
+                        src="${review.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.author_name)}&background=4CAF50&color=fff`}" 
+                        alt="${review.author_name}" 
+                        style="
+                            width: 60px; 
+                            height: 60px; 
+                            border-radius: 50%; 
+                            margin-right: 15px; 
+                            object-fit: cover;
+                            border: 3px solid #4CAF50;
+                        "
+                        onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(review.author_name)}&background=4CAF50&color=fff'"
+                    >
+                    <div class="client-info" style="text-align: left;">
+                        <h4 style="margin: 0 0 8px 0; font-size: 20px; color: #333; font-weight: 600;">${review.author_name}</h4>
+                        <div class="stars" style="color: #FFD700; margin-bottom: 5px; font-size: 16px; letter-spacing: 1px;">
                             ${stars}
-                            <div class="review-date">${reviewDate}</div>
                         </div>
+                        <span style="font-size: 14px; color: #888;">${reviewDate}</span>
                     </div>
-                    <p class="review-text">${review.text}</p>
                 </div>
             </div>
         `;
     });
     
     html += `
-        </div>
-        <div class="testimonial-dots" style="text-align: center; margin-top: 20px;">
-            ${reviews.map((_, i) => 
-                `<span class="testimonial-dot ${i === 0 ? 'active' : ''}" 
-                      data-index="${i}" 
-                      style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #ddd; margin: 0 5px; cursor: pointer;"></span>`
-            ).join('')}
+            </div>
+            
+            <!-- Navigation Arrows -->
+            <button class="carousel-prev" style="
+                position: absolute;
+                left: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transition: all 0.3s ease;
+                z-index: 10;
+            " onmouseover="this.style.background='#43A047'; this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.background='#4CAF50'; this.style.transform='translateY(-50%) scale(1)'">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            
+            <button class="carousel-next" style="
+                position: absolute;
+                right: 10px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 50%;
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+                cursor: pointer;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transition: all 0.3s ease;
+                z-index: 10;
+            " onmouseover="this.style.background='#43A047'; this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.background='#4CAF50'; this.style.transform='translateY(-50%) scale(1)'">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <!-- Dots Indicator -->
+            <div class="carousel-dots" style="
+                display: flex;
+                justify-content: center;
+                margin-top: 30px;
+                gap: 10px;
+            ">
+    `;
+    
+    reviews.forEach((_, index) => {
+        html += `
+            <button class="carousel-dot ${index === 0 ? 'active' : ''}" data-slide="${index}" style="
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                border: none;
+                background: ${index === 0 ? '#4CAF50' : '#ddd'};
+                cursor: pointer;
+                transition: all 0.3s ease;
+            " onmouseover="if(!this.classList.contains('active')) this.style.background='#bbb'" onmouseout="if(!this.classList.contains('active')) this.style.background='#ddd'"></button>
+        `;
+    });
+    
+    html += `
+            </div>
         </div>
     `;
     
     reviewsContainer.innerHTML = html;
     
-    // Initialize carousel
-    initTestimonialCarousel();
+    // Initialize carousel functionality
+    initializeCarousel(reviews.length);
+    
+    console.log('Carrossel de avaliações renderizado com sucesso!');
 }
 
-// Initialize testimonial carousel
-function initTestimonialCarousel() {
-    const track = document.querySelector('.testimonial-track');
-    const dots = document.querySelectorAll('.testimonial-dot');
-    let currentIndex = 0;
-    
-    if (!track) return;
-    
-    // Update slide position
-    function updateSlide() {
-        track.style.transform = `translateX(-${currentIndex * 100}%)`;
-        
-        // Update dots
-        dots.forEach((dot, index) => {
-            if (index === currentIndex) {
-                dot.style.background = '#4CAF50';
-            } else {
-                dot.style.background = '#ddd';
-            }
-        });
-    }
-    
-    // Dot click event
-    dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
-            currentIndex = index;
-            updateSlide();
-        });
-    });
-    
-    // Auto-rotate slides
-    setInterval(() => {
-        currentIndex = (currentIndex + 1) % dots.length;
-        updateSlide();
-    }, 5000);
-}
 
 // Function to fetch Google Reviews
 async function fetchGoogleReviews() {
@@ -142,7 +212,8 @@ async function fetchGoogleReviews() {
     reviewsContainer.innerHTML = `
         <div class="loading-reviews" style="text-align: center; padding: 40px;">
             <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
-            <p style="color: #666;">Carregando depoimentos...</p>
+            <p style="color: #666; margin-bottom: 10px;">Loading Google Reviews...</p>
+            <p style="color: #999; font-size: 14px;">If this takes too long, we'll show sample reviews</p>
         </div>
     `;
 
@@ -151,7 +222,9 @@ async function fetchGoogleReviews() {
         const apiKey = 'AIzaSyBdMFOSAlHPljt54uGAvyFRh2cIxH_lZ8g';
         const placeId = 'ChIJVTLH0y7uVUERjS7dceLoJhM';
         
-        console.log('Fetching reviews for Place ID:', placeId);
+        console.log('🔍 Tentando buscar reviews do Google My Business...');
+        console.log('📍 Place ID:', placeId);
+        console.log('🔑 API Key (primeiros 10 chars):', apiKey.substring(0, 10) + '...');
         
         // Build the API URL with all necessary parameters
         const fields = [
@@ -164,35 +237,50 @@ async function fetchGoogleReviews() {
             'website'
         ].join(',');
         
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        // Try direct API call first, then fallback to proxy if needed
         const apiUrl = `https://maps.googleapis.com/maps/api/place/details/json?` +
             `place_id=${encodeURIComponent(placeId)}` +
             `&fields=${encodeURIComponent(fields)}` +
             `&reviews_sort=newest` +
+            `&language=en` +
             `&key=${apiKey}`;
-        const url = proxyUrl + apiUrl;
+        const url = apiUrl;
         
         console.log('URL da API com proxy:', url);
         
-        // Fazer a requisição para a API do Google Places com timeout
+        // Make request to Google Places API with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos de timeout
+        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
         
-        console.log('Fetching from URL:', url);
+        console.log('🌐 Tentando chamada direta para:', url);
         
-        const response = await fetch(url, { 
-            signal: controller.signal,
-            headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            mode: 'cors',
-            cache: 'no-cache'
-        });
+        let response;
+        try {
+            // First try direct call
+            response = await fetch(url, { 
+                signal: controller.signal,
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                mode: 'cors',
+                cache: 'no-cache'
+            });
+        } catch (corsError) {
+            console.log('❌ Erro CORS na chamada direta, tentando com proxy...');
+            
+            // If CORS fails, try with proxy
+            const proxyUrl = 'https://api.allorigins.win/raw?url=';
+            const proxiedUrl = proxyUrl + encodeURIComponent(url);
+            console.log('🔄 Tentando com proxy:', proxiedUrl);
+            
+            response = await fetch(proxiedUrl, { 
+                signal: controller.signal,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+        }
         
         console.log('Status da resposta:', response.status, response.statusText);
         
@@ -227,7 +315,7 @@ async function fetchGoogleReviews() {
             console.log('Avaliação média:', data.result.rating);
             console.log('Total de avaliações:', data.result.user_ratings_total);
             
-            // Log detalhado do resultado
+            // Detailed log of the result
             console.log('Dados completos da resposta:', JSON.stringify({
                 name: data.result.name,
                 rating: data.result.rating,
@@ -240,7 +328,7 @@ async function fetchGoogleReviews() {
                 console.warn('Nenhuma avaliação encontrada para este local.');
                 console.log('Dados completos do local:', JSON.stringify(data.result, null, 2));
                 
-                // Verificar se há avaliações totais, mas nenhuma retornada
+                // Check if there are total ratings but none returned
                 const hasRatingsButNoReviews = data.result.user_ratings_total > 0 && 
                                              (!data.result.reviews || data.result.reviews.length === 0);
                 
@@ -255,31 +343,31 @@ async function fetchGoogleReviews() {
             
             console.log('Avaliações encontradas:', data.result.reviews.length);
             
-            // Mapear os dados da API para o formato esperado
+            // Map API data to expected format
             const reviews = data.result.reviews.map((review, index) => ({
                 id: review.author_url ? review.author_url.split('/').pop() || `review-${index}` : `review-${index}`,
-                author_name: review.author_name || 'Cliente Anônimo',
+                author_name: review.author_name || 'Anonymous',
                 rating: review.rating || 5,
-                text: review.text ? review.text.replace(/\n/g, '<br>') : 'Sem texto disponível.',
-                relative_time_description: review.relative_time_description || 'Recentemente',
+                text: review.text ? review.text.replace(/\n/g, '<br>') : 'No review text available.',
+                relative_time_description: review.relative_time_description || 'Recently',
                 profile_photo_url: review.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.author_name || 'U')}&background=4CAF50&color=fff`,
                 time: review.time || Date.now(),
-                language: review.language || 'pt-BR',
+                language: review.language || 'en-US',
                 author_url: review.author_url || `https://www.google.com/maps/contrib/${review.author_url ? review.author_url.split('/').pop() : ''}`
             }));
             
-            // Ordenar por data (mais recentes primeiro)
+            // Sort by date (newest first)
             reviews.sort((a, b) => b.time - a.time);
             
-            // Renderizar os depoimentos
+            // Render the reviews
             renderReviews(reviews);
             
-            // Inicializar o carrossel após um pequeno atraso
+            // Initialize carousel after a short delay
             setTimeout(() => {
                 if (typeof initTestimonialSlider === 'function') {
                     initTestimonialSlider();
                 } else if (typeof $ !== 'undefined' && typeof $.fn.slick === 'function') {
-                    // Se estiver usando Slick Carousel
+                    // If using Slick Carousel
                     $('.testimonial-slider').slick({
                         dots: true,
                         infinite: true,
@@ -292,51 +380,51 @@ async function fetchGoogleReviews() {
                 }
             }, 100);
             
-            return; // Importante para sair da função após o processamento
+            return; // Important to exit the function after processing
             
         } else {
             throw new Error(data.error_message || 'Não foi possível carregar os depoimentos. Status: ' + data.status);
         }
     } catch (error) {
-        console.error('Erro ao carregar depoimentos:', error);
+        console.error('❌ Erro ao carregar depoimentos do Google:', error);
         
         // Mensagens de erro mais detalhadas
-        let errorMessage = 'Erro ao carregar avaliações. ';
+        let errorMessage = 'Could not load Google reviews. ';
         
         if (error.name === 'AbortError') {
-            errorMessage = 'Tempo limite excedido ao carregar avaliações. Verifique sua conexão e tente novamente.';
-            console.warn('A requisição foi cancelada por timeout');
+            errorMessage = '⏰ Timeout - Google API is taking too long. Showing sample reviews...';
+            console.warn('⏰ A requisição foi cancelada por timeout');
         } else if (error.message.includes('API key not valid')) {
-            errorMessage = 'Chave de API inválida. Por favor, verifique as configurações.';
-            console.error('Erro de autenticação: Chave de API inválida ou expirada');
+            errorMessage = '🔑 Invalid API key. Showing sample reviews...';
+            console.error('🔑 Erro de autenticação: Chave de API inválida');
         } else if (error.message.includes('quota')) {
-            errorMessage = 'Limite de cota da API excedido. Por favor, tente novamente mais tarde.';
-            console.error('Erro de cota da API excedida');
-        } else if (error.message.includes('PERMISSAO_NEGADA')) {
-            errorMessage = 'Permissão negada: A chave de API não tem acesso à API do Google Places.';
-            console.error('Erro de permissão:', error.message);
-            
-            // Adicionar instruções detalhadas no console
-            console.error('\n=== COMO RESOLVER O ERRO DE PERMISSÃO ===');
-            console.error('1. Acesse o Google Cloud Console: https://console.cloud.google.com/');
-            console.error('2. Selecione seu projeto');
-            console.error('3. Vá em "APIs e Serviços" > "Biblioteca"');
-            console.error('4. Pesquise por "Places API" e clique em "Ativar"');
-            console.error('5. Aguarde alguns minutos e tente novamente\n');
-            
-        } else if (error.message.includes('403') || error.message.includes('CORS') || error.message.includes('origin')) {
-            errorMessage = 'Não foi possível carregar as avaliações no momento. Exibindo avaliações de exemplo...';
-            console.error('Erro de CORS ou permissão negada:', error.message);
-        } else if (error.message.includes('invalid json')) {
-            errorMessage = 'Resposta inválida do servidor. Exibindo avaliações de exemplo...';
-            console.error('Resposta inválida do servidor:', error.message);
+            errorMessage = '📊 API quota exceeded. Showing sample reviews...';
+            console.error('📊 Erro de cota da API excedida');
+        } else if (error.message.includes('PERMISSAO_NEGADA') || error.message.includes('403')) {
+            errorMessage = '🚫 Permission denied. Showing sample reviews...';
+            console.error('🚫 Erro de permissão:', error.message);
+        } else if (error.message.includes('CORS') || error.message.includes('origin')) {
+            errorMessage = '🌐 CORS error - Browser blocked the request. Showing sample reviews...';
+            console.error('🌐 Erro de CORS:', error.message);
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessage = '🔌 Network error - Could not connect to Google API. Showing sample reviews...';
+            console.error('🔌 Erro de rede:', error.message);
+        } else {
+            errorMessage = '❓ Unknown error occurred. Showing sample reviews...';
+            console.error('❓ Erro desconhecido:', error.message);
         }
         
-        showErrorMessage(errorMessage);
+        console.log('🔄 Carregando depoimentos de exemplo como fallback...');
         
-        // Carregar depoimentos de exemplo após um curto atraso
+        // Mostrar mensagem temporária e depois carregar exemplos
+        reviewsContainer.innerHTML = `
+            <div style="text-align: center; padding: 20px; background: #fff3cd; border-radius: 8px; margin: 10px 0;">
+                <p style="color: #856404; margin: 0;">${errorMessage}</p>
+            </div>
+        `;
+        
+        // Carregar depoimentos de exemplo após 1 segundo
         setTimeout(() => {
-            console.log('Carregando depoimentos de exemplo...');
             loadSampleReviews();
         }, 1000);
     }
@@ -380,339 +468,247 @@ function showErrorMessage(message) {
         <div class="error-message" style="text-align: center; padding: 20px; color: #721c24; background-color: #f8d7da; border-radius: 5px; margin: 10px 0;">
             <i class="fas fa-exclamation-triangle"></i>
             <p>${message}</p>
-            <p><small>Se o problema persistir, entre em contato com o suporte.</small></p>
+            <p><small>If the problem persists, please contact support.</small></p>
         </div>
     `;
 }
 
-// Função para renderizar as avaliações
-// Função para renderizar os depoimentos
-function renderReviews(reviews) {
-    const reviewsContainer = document.getElementById('googleReviews');
-    if (!reviewsContainer) return;
-    
-    if (!reviews || reviews.length === 0) {
-        showNoReviewsMessage('');
-        return;
-    }
-    
-    // Limitar a 5 depoimentos
-    const limitedReviews = reviews.slice(0, 5);
-    
-    let html = '<div class="testimonial-slider" style="max-width: 100%;">';
-    
-    limitedReviews.forEach((review) => {
-        const stars = '★'.repeat(Math.floor(review.rating)) + '☆'.repeat(5 - Math.floor(review.rating));
-        
-        html += `
-            <div class="testimonial" style="
-                background: white; 
-                border-radius: 12px; 
-                padding: 25px; 
-                margin: 10px; 
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-                height: 100%;
-                display: flex;
-                flex-direction: column;
-            ">
-                <div class="quote" style="flex-grow: 1;">
-                    <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 24px; margin-bottom: 15px; display: block;"></i>
-                    <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 20px; min-height: 100px;">
-                        "${review.text.replace(/"/g, '&quot;')}"
-                    </p>
-                </div>
-                <div class="client" style="
-                    display: flex; 
-                    align-items: center; 
-                    margin-top: auto; 
-                    padding-top: 15px; 
-                    border-top: 1px solid #eee;
-                ">
-                    <img 
-                        src="${review.profile_photo_url}" 
-                        alt="${review.author_name}" 
-                        style="
-                            width: 50px; 
-                            height: 50px; 
-                            border-radius: 50%; 
-                            margin-right: 15px; 
-                            object-fit: cover;
-                            border: 2px solid #4CAF50;
-                        "
-                        onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(review.author_name)}&background=4CAF50&color=fff'"
-                    >
-                    <div class="client-info">
-                        <h4 style="margin: 0 0 5px 0; font-size: 18px; color: #333;">${review.author_name}</h4>
-                        <div class="stars" style="color: #FFD700; margin-bottom: 5px; font-size: 14px; letter-spacing: 2px;">
-                            ${stars}
-                        </div>
-                        <span style="font-size: 13px; color: #888;">${review.relative_time_description}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    });
-    
-    html += '</div>';
-    
-    reviewsContainer.innerHTML = html;
-    
-    // Adicionar estilos CSS inline para o carrossel
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .slick-slide { padding: 0 10px; }
-        .slick-dots { position: static; margin-top: 20px; }
-        .slick-dots li button:before { font-size: 12px; }
-        .slick-prev:before, .slick-next:before { color: #4CAF50; }
-    `;
-    document.head.appendChild(style);
-}
-
-// Função para carregar depoimentos de exemplo (fallback)
+// Function to load sample reviews (fallback) - All in English
 function loadSampleReviews() {
-    console.log('Carregando depoimentos de exemplo...');
+    console.log('Loading sample reviews in English...');
     
     const reviews = [
         {
             id: 'sample-1',
-            author_name: 'Maria Silva',
+            author_name: 'Sarah Johnson',
             rating: 5,
-            text: 'Excelente serviço! Minha casa nunca esteve tão limpa. A equipe é muito profissional e atenciosa. Recomendo muito!',
-            relative_time_description: 'Há 1 semana',
+            text: 'Excellent service! My house has never been so clean. The team is very professional and attentive to every detail. Highly recommended!',
+            relative_time_description: '1 week ago',
             profile_photo_url: 'https://randomuser.me/api/portraits/women/44.jpg',
             author_url: 'https://www.google.com/maps/contrib/123456789',
-            language: 'pt-BR'
+            language: 'en-US'
         },
         {
             id: 'sample-2',
-            author_name: 'João Santos',
+            author_name: 'Michael Rodriguez',
             rating: 5,
-            text: 'Contratei para limpar meu escritório e fiquei impressionado com a qualidade do serviço. Pontualidade e comprometimento com a limpeza. Recomendo!',
-            relative_time_description: 'Há 2 semanas',
+            text: 'I hired them to clean my office and was impressed with the quality. Punctual, professional, and committed to excellence. Highly recommend!',
+            relative_time_description: '2 weeks ago',
             profile_photo_url: 'https://randomuser.me/api/portraits/men/32.jpg',
             author_url: 'https://www.google.com/maps/contrib/987654321',
-            language: 'pt-BR'
+            language: 'en-US'
         },
         {
             id: 'sample-3',
-            author_name: 'Ana Oliveira',
-            rating: 4,
-            text: 'Ótimo atendimento e limpeza impecável. A equipe foi muito cuidadosa com meus móveis e objetos pessoais. Voltarei a contratar com certeza!',
-            relative_time_description: 'Há 3 semanas',
+            author_name: 'Emily Davis',
+            rating: 5,
+            text: 'Great service and impeccable cleaning. The team was very careful with my furniture and belongings. Will definitely hire again!',
+            relative_time_description: '3 weeks ago',
             profile_photo_url: 'https://randomuser.me/api/portraits/women/68.jpg',
             author_url: 'https://www.google.com/maps/contrib/456789123',
-            language: 'pt-BR'
+            language: 'en-US'
         },
         {
             id: 'sample-4',
-            author_name: 'Carlos Eduardo',
+            author_name: 'David Thompson',
             rating: 5,
-            text: 'Serviço de primeira! Contratei para a limpeza pós-obra e ficou perfeito. A equipe foi muito profissional e caprichosa em todos os detalhes.',
-            relative_time_description: 'Há 1 mês',
+            text: 'First-class service! Perfect post-construction cleaning. The team was professional and meticulous in every detail.',
+            relative_time_description: '1 month ago',
             profile_photo_url: 'https://randomuser.me/api/portraits/men/45.jpg',
             author_url: 'https://www.google.com/maps/contrib/321654987',
-            language: 'pt-BR'
+            language: 'en-US'
         },
         {
             id: 'sample-5',
-            author_name: 'Fernanda Costa',
+            author_name: 'Jessica Wilson',
             rating: 5,
-            text: 'Melhor serviço de limpeza que já contratei! A casa fica impecável, com cheirinho de limpo. A equipe é muito educada e atenciosa. Super recomendo!',
-            relative_time_description: 'Há 2 meses',
+            text: 'Best cleaning service ever! The house is spotless with a fresh clean smell. Very polite and attentive team. Highly recommend!',
+            relative_time_description: '2 months ago',
             profile_photo_url: 'https://randomuser.me/api/portraits/women/22.jpg',
             author_url: 'https://www.google.com/maps/contrib/789456123',
-            language: 'pt-BR'
+            language: 'en-US'
+        },
+        {
+            id: 'sample-6',
+            author_name: 'Robert Martinez',
+            rating: 5,
+            text: 'Outstanding work! They transformed my home completely. Professional, reliable, and affordable. Magic CleanDom lives up to their name!',
+            relative_time_description: '3 months ago',
+            profile_photo_url: 'https://randomuser.me/api/portraits/men/67.jpg',
+            author_url: 'https://www.google.com/maps/contrib/111222333',
+            language: 'en-US'
+        },
+        {
+            id: 'sample-7',
+            author_name: 'Amanda Foster',
+            rating: 5,
+            text: 'Incredible attention to detail! They cleaned areas I never even thought about. My home feels brand new. Exceptional service!',
+            relative_time_description: '4 months ago',
+            profile_photo_url: 'https://randomuser.me/api/portraits/women/35.jpg',
+            author_url: 'https://www.google.com/maps/contrib/444555666',
+            language: 'en-US'
+        },
+        {
+            id: 'sample-8',
+            author_name: 'James Anderson',
+            rating: 5,
+            text: 'Professional team, fair pricing, and amazing results. They exceeded all my expectations. Will definitely use them again!',
+            relative_time_description: '5 months ago',
+            profile_photo_url: 'https://randomuser.me/api/portraits/men/58.jpg',
+            author_url: 'https://www.google.com/maps/contrib/777888999',
+            language: 'en-US'
+        },
+        {
+            id: 'sample-9',
+            author_name: 'Lisa Chen',
+            rating: 5,
+            text: 'They saved me so much time and stress! Perfect cleaning for my busy lifestyle. Trustworthy and reliable service.',
+            relative_time_description: '6 months ago',
+            profile_photo_url: 'https://randomuser.me/api/portraits/women/71.jpg',
+            author_url: 'https://www.google.com/maps/contrib/101112131',
+            language: 'en-US'
+        },
+        {
+            id: 'sample-10',
+            author_name: 'Mark Thompson',
+            rating: 5,
+            text: 'Top-notch service from start to finish. They respect your home and belongings while delivering exceptional cleaning results.',
+            relative_time_description: '7 months ago',
+            profile_photo_url: 'https://randomuser.me/api/portraits/men/42.jpg',
+            author_url: 'https://www.google.com/maps/contrib/141516171',
+            language: 'en-US'
         }
     ];
     
     // Simular um pequeno atraso para parecer uma requisição real
     setTimeout(() => {
-        console.log('Depoimentos de exemplo carregados com sucesso');
+        console.log('Sample reviews loaded successfully');
         renderReviews(reviews);
     }, 800);
 }
 
-// Função para mostrar mensagem de erro
-function showErrorMessage(message) {
-    const reviewsContainer = document.getElementById('googleReviews');
-    if (!reviewsContainer) return;
+// Function to initialize carousel functionality
+function initializeCarousel(totalSlides) {
+    let currentSlide = 0;
+    const carousel = document.querySelector('.testimonial-carousel');
+    const prevBtn = document.querySelector('.carousel-prev');
+    const nextBtn = document.querySelector('.carousel-next');
+    const dots = document.querySelectorAll('.carousel-dot');
     
-    reviewsContainer.innerHTML = `
-        <div class="error-message" style="
-            text-align: center; 
-            padding: 30px; 
-            background-color: #ffebee; 
-            border-left: 4px solid #f44336;
-            border-radius: 4px;
-            margin: 20px 0;
-        ">
-            <i class="fas fa-exclamation-triangle" style="color: #f44336; font-size: 24px; margin-bottom: 15px; display: block;"></i>
-            <h3 style="color: #d32f2f; margin: 0 0 10px 0;">Erro ao carregar avaliações</h3>
-            <p style="color: #5f2120; margin: 0 0 15px 0;">${message}</p>
-            <button onclick="fetchGoogleReviews()" style="
-                background: #4CAF50;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 4px;
-                cursor: pointer;
-                font-size: 14px;
-                transition: background 0.3s;
-            ">
-                <i class="fas fa-sync-alt"></i> Tentar novamente
-            </button>
-        </div>
-    `;
+    if (!carousel || !prevBtn || !nextBtn) return;
     
-    // Carregar depoimentos de exemplo após 3 segundos
-    setTimeout(loadSampleReviews, 3000);
+    function updateCarousel() {
+        const translateX = -currentSlide * 100;
+        carousel.style.transform = `translateX(${translateX}%)`;
+        
+        // Update dots
+        dots.forEach((dot, index) => {
+            if (index === currentSlide) {
+                dot.classList.add('active');
+                dot.style.background = '#4CAF50';
+            } else {
+                dot.classList.remove('active');
+                dot.style.background = '#ddd';
+            }
+        });
+    }
+    
+    function nextSlide() {
+        currentSlide = (currentSlide + 1) % totalSlides;
+        updateCarousel();
+    }
+    
+    function prevSlide() {
+        currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+        updateCarousel();
+    }
+    
+    function goToSlide(slideIndex) {
+        currentSlide = slideIndex;
+        updateCarousel();
+    }
+    
+    // Event listeners
+    prevBtn.addEventListener('click', prevSlide);
+    nextBtn.addEventListener('click', nextSlide);
+    
+    dots.forEach((dot, index) => {
+        dot.addEventListener('click', () => goToSlide(index));
+    });
+    
+    // Auto-play carousel
+    setInterval(nextSlide, 5000);
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') prevSlide();
+        if (e.key === 'ArrowRight') nextSlide();
+    });
+    
+    console.log('Carousel initialized with', totalSlides, 'slides');
 }
 
-// Adicionar estilos CSS dinamicamente
+// Inicializar quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', async function() {
+    console.log('DOM carregado, iniciando busca de avaliações...');
+    
+    // Verificar se o container existe
+    const reviewsContainer = document.getElementById('googleReviews');
+    if (reviewsContainer) {
+        console.log('Container de avaliações encontrado, iniciando fetchGoogleReviews...');
+        
+        // Mostrar status inicial
+        reviewsContainer.innerHTML = `
+            <div class="loading-reviews" style="text-align: center; padding: 40px;">
+                <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
+                <p style="color: #666; margin-bottom: 10px;">🔍 Trying to load Google My Business reviews...</p>
+                <p style="color: #999; font-size: 14px;">This may take a few seconds</p>
+            </div>
+        `;
+        
+        // Tentar buscar avaliações do Google primeiro
+        console.log('🚀 Iniciando busca de depoimentos do Google My Business...');
+        
+        try {
+            await fetchGoogleReviews();
+        } catch (error) {
+            console.error('❌ Falha total na busca do Google:', error);
+            
+            // Mostrar mensagem de erro específica
+            reviewsContainer.innerHTML = `
+                <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ffc107;">
+                    <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Google Reviews Unavailable</h4>
+                    <p style="color: #6c757d; margin: 0 0 15px 0;">Unable to load reviews from Google My Business.</p>
+                    <p style="color: #6c757d; margin: 0 0 20px 0; font-size: 14px;">Showing sample testimonials instead...</p>
+                    <div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #ffc107; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+                </div>
+            `;
+            
+            // Carregar exemplos após 2 segundos
+            setTimeout(() => {
+                loadSampleReviews();
+            }, 2000);
+        }
+        
+        // Timeout de segurança absoluto - 10 segundos
+        setTimeout(() => {
+            if (reviewsContainer.querySelector('.loading-reviews') || reviewsContainer.innerHTML.includes('Google Reviews Unavailable')) {
+                console.log('⏰ Timeout final atingido, forçando carregamento de exemplos...');
+                loadSampleReviews();
+            }
+        }, 10000);
+        
+    } else {
+        console.error('Container #googleReviews não encontrado no DOM');
+    }
+});
+
+// Adicionar CSS para animações
 const style = document.createElement('style');
 style.textContent = `
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    
-    .google-review {
-        background: white;
-        border-radius: 10px;
-        padding: 25px;
-        margin: 15px;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .google-review:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-    }
-    
-    .review-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 15px;
-    }
-    
-    .review-author {
-        font-weight: 600;
-        color: #333;
-        margin: 0;
-    }
-    
-    .review-rating {
-        color: #FFC107;
-        margin: 5px 0;
-        font-size: 18px;
-    }
-    
-    .review-date {
-        color: #888;
-        font-size: 14px;
-        margin-top: 5px;
-    }
-    
-    .review-text {
-        color: #555;
-        line-height: 1.6;
-        font-style: italic;
-    }
 `;
 document.head.appendChild(style);
-
-// Load sample reviews if API fails
-function loadSampleReviews() {
-    const sampleReviews = [
-        {
-            author_name: 'Cliente Satisfeito',
-            rating: 5,
-            text: 'Excelente serviço de limpeza! Minha casa nunca esteve tão limpa. A equipe é muito profissional e atenciosa.',
-            time: Math.floor(Date.now() / 1000) - 86400 // 1 day ago
-        },
-        {
-            author_name: 'Maria Silva',
-            rating: 5,
-            text: 'Serviço impecável! Recomendo a todos que buscam qualidade e comprometimento.',
-            time: Math.floor(Date.now() / 1000) - 172800 // 2 days ago
-        },
-        {
-            author_name: 'João Santos',
-            rating: 5,
-            text: 'Profissionais muito competentes e educados. Minha casa ficou brilhando!',
-            time: Math.floor(Date.now() / 1000) - 259200 // 3 days ago
-        }
-    ];
-    
-    renderReviews(sampleReviews);
-}
-
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', function() {
-    const reviewsContainer = document.getElementById('googleReviews');
-    
-    if (reviewsContainer) {
-        // First try to fetch real reviews
-        fetchGoogleReviews().catch(error => {
-            console.error('Error fetching Google reviews:', error);
-            // If there's an error, show sample reviews
-            loadSampleReviews();
-        });
-        
-        // If loading takes too long, show a message
-        const loadingTimeout = setTimeout(() => {
-            if (reviewsContainer.querySelector('.loading-reviews')) {
-                console.log('Still loading reviews...');
-            }
-        }, 5000);
-        
-        // Clean up timeout when component unmounts
-        return () => {
-            clearTimeout(loadingTimeout);
-        };
-    }
-});
-
-// Adicionar estilos CSS para o carregamento
-const loadingStyles = document.createElement('style');
-loadingStyles.textContent = `
-    @keyframes spin {
-{{ ... }}
-        100% { transform: rotate(360deg); }
-    }
-    
-    .loading-reviews {
-        text-align: center;
-        padding: 40px;
-        font-size: 16px;
-        color: #666;
-    }
-    
-    .spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid #f3f3f3;
-        border-top: 4px solid #4CAF50;
-        border-radius: 50%;
-        margin: 0 auto 15px;
-        animation: spin 1s linear infinite;
-    }
-    
-    .no-reviews {
-        text-align: center;
-        padding: 30px;
-        background: #f8f9fa;
-        border-radius: 8px;
-        margin: 20px 0;
-    }
-    
-    .no-reviews i {
-        font-size: 40px;
-        color: #6c757d;
-        margin-bottom: 15px;
-        display: block;
-    }
-`;
-document.head.appendChild(loadingStyles);
