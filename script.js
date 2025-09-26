@@ -56,7 +56,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Fechar modal ao clicar no X
         if (closeBtn) {
-            closeBtn.addEventListener('click', function() {
+            closeBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 // Pausa o vídeo ao fechar o modal
@@ -174,12 +176,14 @@ document.addEventListener('DOMContentLoaded', function() {
             certificateBtn.style.cursor = 'pointer';
             certificateBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                modal.style.display = 'block';
+                e.stopPropagation();
+                modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
                 // Mostra o primeiro slide ao abrir o modal
                 showSlide(0);
                 // Mostrar instrução de zoom
                 showZoomInstruction();
+                console.log('Modal de certificados aberto');
             });
         }
         
