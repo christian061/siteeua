@@ -73,35 +73,72 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Fechar modal ao clicar no X
         if (closeBtn) {
-            closeBtn.addEventListener('click', function(e) {
+            // Remove event listeners antigos para evitar duplicação
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+            
+            // Adiciona o novo event listener
+            newCloseBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 // Pausa o vídeo ao fechar o modal
-                videoIframe.src = '';
+                if (videoIframe) {
+                    videoIframe.src = '';
+                }
+                // Restaura a posição de rolagem no mobile
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
             });
+            
+            // Adiciona estilos para garantir que o botão seja clicável
+            newCloseBtn.style.zIndex = '1001';
+            newCloseBtn.style.position = 'relative';
         }
         
-        // Fechar modal ao clicar fora do conteúdo
-        window.addEventListener('click', function(e) {
+        // Fechar ao clicar fora do conteúdo
+        const handleOutsideClick = function(e) {
             if (e.target === modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 // Pausa o vídeo ao fechar o modal
-                videoIframe.src = '';
+                if (videoIframe) {
+                    videoIframe.src = '';
+                }
+                // Remove o event listener para evitar múltiplas instâncias
+                window.removeEventListener('click', handleOutsideClick);
+                // Restaura a posição de rolagem no mobile
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
             }
-        });
+        };
+        
+        // Adiciona o event listener para clique fora do modal
+        window.addEventListener('click', handleOutsideClick);
         
         // Fechar com a tecla ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.style.display === 'block') {
+        const handleKeyDown = function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 // Pausa o vídeo ao fechar o modal
-                videoIframe.src = '';
+                if (videoIframe) {
+                    videoIframe.src = '';
+                }
+                // Remove o event listener para evitar múltiplas instâncias
+                document.removeEventListener('keydown', handleKeyDown);
+                // Restaura a posição de rolagem no mobile
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
             }
-        });
+        };
+        
+        // Adiciona o event listener para a tecla ESC
+        document.addEventListener('keydown', handleKeyDown);
     }
     
     // Inicializar o modal do vídeo de experiência
@@ -182,9 +219,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 nextSlide();
             } else if (e.key === 'ArrowLeft') {
                 prevSlide();
-            } else if (e.key === 'Escape') {
+            } else if (e.key === 'Escape' && modal.style.display === 'flex') {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
+                // Restaura a posição de rolagem ao fechar
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
             }
         });
         
@@ -194,10 +235,26 @@ document.addEventListener('DOMContentLoaded', function() {
             certificateBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
+                
+                // Salva a posição de rolagem atual
+                const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Abre o modal
                 modal.style.display = 'flex';
                 document.body.style.overflow = 'hidden';
+                
+                // Ajusta a posição do modal para a visão atual
+                modal.scrollTop = 0;
+                
                 // Mostra o primeiro slide ao abrir o modal
                 showSlide(0);
+                
+                // Ajusta a posição na tela
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                } else {
+                    window.scrollTo(0, scrollPosition);
+                }
                 // Mostrar instrução de zoom
                 showZoomInstruction();
                 console.log('Modal de certificados aberto');
@@ -230,6 +287,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 resetZoom(); // Reset zoom ao fechar
+                // Restaura a posição de rolagem ao fechar
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
             });
         }
         
@@ -239,6 +300,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 resetZoom(); // Reset zoom ao fechar
+                // Restaura a posição de rolagem ao fechar
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
             }
         });
         
