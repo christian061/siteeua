@@ -1333,102 +1333,99 @@ a.feature.feature-link > * {
 /* Service Area */
 .service-area {
     position: relative;
-    overflow: visible; /* Allow plaques to show outside */
-    /* Modern background with gradient */
-    background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+    overflow: hidden; /* Changed from visible to prevent overflow issues */
+    background: linear-gradient(135deg, #616264b9, #555353, #444443);
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
     color: var(--white);
-    position: relative;
-    overflow: visible; /* Allow plaques to show outside */
-    padding-bottom: 40px; /* Extra space for plaques */
-    
-    /* Optional: Add a subtle pattern overlay */
-    background-image: 
-      linear-gradient(rgba(18, 28, 38, 0.85), rgba(18, 28, 38, 0.9)),
-      linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.1)),
-      linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.1) 75%, rgba(255,255,255,0.1));
-    background-size: 100% 100%, 10px 10px, 10px 10px;
-    background-position: 0 0, 0 0, 5px 5px;
     text-align: center;
-    min-height: 60vh; /* give the mirror room to shine */
-    background-position: center 40%; /* favor top highlights */
-    border: 10px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
-    box-shadow: 
-        inset 10 10 10 1px rgba(255, 255, 255, 0.15), 
-        inset 10 40px 120px rgba(0,0,0,0.35),
-        10 10 10 8px rgba(255, 255, 255, 0.03),
-        10 10 10 12px rgba(0, 0, 0, 0.15);
+    padding: 60px 0 40px;
     margin: 20px;
-    position: relative;
+    border-radius: 12px;
+    border: 10px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 
+        inset 10 10 10 1px rgba(255, 255, 255, 0.1), 
+        inset 10 40px 120px rgba(0,0,0,0.3),
+        10 10 10 8px rgba(255, 255, 255, 0.03),
+        10 10 10 12px rgba(0, 0, 0, 0.1);
     z-index: 1;
+    /* Performance optimizations */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    -webkit-font-smoothing: antialiased;
+    contain: content;
 }
 
-/* Moldura decorativa externa */
-.service-area::after {
-    content: '';
-    position: absolute;
-    top: -16px;
-    left: -16px;
-    right: -16px;
-    bottom: -16px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    pointer-events: none;
-    z-index: -1;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+/* Glass effect - only on desktop */
+@media (min-width: 769px) {
+    /* Glass frame effect */
+    .service-area::after {
+        content: '';
+        position: absolute;
+        top: -16px;
+        left: -16px;
+        right: -16px;
+        bottom: -16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 20px;
+        pointer-events: none;
+        z-index: -1;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Glass texture and sheen */
+    .service-area::before,
+    .service-area::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+
+    /* Simplified texture */
+    .service-area::before {
+        background: radial-gradient(ellipse at center, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 60%);
+        opacity: 0.3;
+        z-index: 1;
+    }
+
+    /* Simplified sheen effect */
+    .service-area::after {
+        background: linear-gradient(
+            110deg,
+            rgba(255,255,255,0) 0%,
+            rgba(255,255,255,0.15) 40%,
+            rgba(255,255,255,0.4) 50%,
+            rgba(255,255,255,0.15) 60%,
+            rgba(255,255,255,0) 100%
+        );
+        transform: translateX(-100%) rotate(15deg);
+        opacity: 0;
+        z-index: 2;
+        will-change: transform, opacity;
+        animation: subtleSheen 10s ease-in-out infinite;
+    }
+
+    @keyframes subtleSheen {
+        0%, 100% {
+            opacity: 0;
+            transform: translateX(-100%) rotate(15deg);
+        }
+        50% {
+            opacity: 0.6;
+            transform: translateX(100%) rotate(15deg);
+        }
+    }
 }
 
-/* Subtle glass texture and dynamic sheen */
-.service-area::before,
-.service-area::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-}
-
-/* Soft glass/smudges texture for realism */
-.service-area::before {
-    background:
-      radial-gradient(1200px 800px at 10% 10%, rgba(255,255,255,0.04), rgba(255,255,255,0)),
-      repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0 8px, rgba(0,0,0,0.04) 8px 16px);
-    mix-blend-mode: overlay;
-    opacity: 0.5;
-}
-
-/* Animated sheen sweep to simulate a fresh wipe */
-.service-area::after {
-    background:
-      linear-gradient( 
-        110deg,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,0.22) 45%,
-        rgba(255,255,255,0.65) 50%,
-        rgba(255,255,255,0.22) 55%,
-        rgba(255,255,255,0) 100%
-      );
-    transform: translateX(-120%) translateY(-10%);
-    animation: shineSweep 5.5s ease-in-out infinite;
-    opacity: 0.8;
-    mix-blend-mode: screen;
-}
-
-@keyframes shineSweep {
-    0%   { transform: translateX(-120%) translateY(-10%) rotate(0.001deg); }
-    18%  { transform: translateX(5%) translateY(0%); }
-    35%  { transform: translateX(120%) translateY(10%); }
-    50%  { transform: translateX(140%) translateY(12%); }
-    100% { transform: translateX(140%) translateY(12%); }
-}
-
-/* Respect reduced motion preferences */
+/* Disable animations when reduced motion is preferred */
 @media (prefers-reduced-motion: reduce) {
-  .service-area::after {
-    animation: none;
-    transform: translateX(-120%) translateY(-10%);
-  }
+    .service-area::after {
+        animation: none !important;
+        opacity: 0.1 !important;
+    }
 }
 
 .service-area .section-header h2,
@@ -1440,13 +1437,13 @@ a.feature.feature-link > * {
 .cities {
     display: grid;
     grid-template-columns: repeat(3, 1fr); /* 3 on top, 3 on bottom */
-    gap: 60px; /* Increased gap to accommodate larger frames */
-    margin-top: 50px;
-    margin-bottom: 80px; /* Extra space for plaques */
-    padding: 40px 20px 60px 20px; /* Extra bottom padding for plaques */
+    gap: 30px; /* Reduced gap for better space usage */
+    margin: 20px auto 40px; /* Reduced margins */
+    padding: 20px 10px 40px; /* Reduced padding */
+    max-width: 1200px;
     align-items: stretch;
     overflow-x: hidden; /* Prevent horizontal scroll */
-    width: 100%;
+    width: 90%;
     box-sizing: border-box;
 }
 
@@ -2178,9 +2175,9 @@ a.feature.feature-link > * {
 
 .footer-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 40px;
-    margin-bottom: 50px;
+    margin-bottom: 40px;
 }
 
 .footer-about h3 {
@@ -2207,23 +2204,22 @@ a.feature.feature-link > * {
 }
 
 .footer-links h3,
-.footer-services h3,
-.footer-newsletter h3 {
+.footer-services h3 {
     font-size: 1.3rem;
     margin-bottom: 25px;
     color: var(--white);
     position: relative;
-    padding-bottom: 10px;
+    padding-left: 30px;
 }
 
 .footer-links h3:after,
-.footer-services h3:after,
-.footer-newsletter h3:after {
+.footer-services h3:after {
     content: '';
     position: absolute;
     left: 0;
-    bottom: 0;
-    width: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
     height: 2px;
     background: var(--primary-color);
 }
@@ -2244,33 +2240,6 @@ a.feature.feature-link > * {
 .footer-services a:hover {
     color: var(--primary-color);
     padding-left: 5px;
-}
-
-.newsletter-form {
-    display: flex;
-    margin-top: 20px;
-}
-
-.newsletter-form input {
-    flex: 1;
-    padding: 12px 15px;
-    border: none;
-    border-radius: 5px 0 0 5px;
-    font-family: 'Poppins', sans-serif;
-}
-
-.newsletter-form button {
-    background: var(--primary-color);
-    color: var(--white);
-    border: none;
-    padding: 0 20px;
-    border-radius: 0 5px 5px 0;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.newsletter-form button:hover {
-    background: #357abd;
 }
 
 .footer-bottom {
@@ -2459,7 +2428,13 @@ textarea:focus {
     }
     
     /* 2 columns for cities on tablets */
-    .cities { grid-template-columns: repeat(2, 1fr); }
+    .cities { 
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 15px 5px 30px;
+        margin: 15px auto 30px;
+        width: 95%;
+    }
 }
 
 @media (max-width: 768px) {
@@ -2574,21 +2549,66 @@ textarea:focus {
     /* 1 column for cities on phones */
     .cities { 
         grid-template-columns: 1fr; 
-        gap: 30px; 
-        padding: 20px 10px 40px 10px;
-        margin: 20px 0 40px 0;
+        gap: 20px; 
+        padding: 10px 5px 20px;
+        margin: 10px auto 20px;
+        width: 95%;
         overflow-x: hidden;
     }
     
     /* Service area mobile optimization */
-    .service-area {
-        overflow-x: hidden;
-        padding: 40px 0;
-    }
-    
-    .service-area .container {
-        padding: 0 10px;
-        overflow-x: hidden;
+    @media (max-width: 768px) {
+        .service-area {
+            overflow-x: hidden;
+            padding: 30px 15px;
+            margin: 10px !important;
+            border: 5px solid rgba(255, 255, 255, 0.1) !important;
+            border-radius: 8px !important;
+            background: linear-gradient(135deg, #616264b9, #535252, #cfcfce) !important;
+            background-size: 200% 200% !important;
+            position: relative;
+            z-index: 1;
+        }
+        
+        /* Efeito de luz suave para mobile */
+        .service-area::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(
+                circle at 20% 30%,
+                rgba(255, 255, 255, 0.15) 0%,
+                rgba(255, 255, 255, 0) 60%
+            );
+            z-index: -1;
+            pointer-events: none;
+            animation: mobileLightMove 12s ease-in-out infinite alternate;
+        }
+        
+        @keyframes mobileLightMove {
+            0% {
+                transform: translateX(-10%) translateY(-10%) scale(1.2);
+            }
+            100% {
+                transform: translateX(10%) translateY(10%) scale(1);
+            }
+        }
+        
+        .service-area .container {
+            padding: 0 10px !important;
+            overflow-x: hidden;
+        }
+        
+        /* Otimização para reduzir travamentos */
+        @media (prefers-reduced-motion: reduce) {
+            .service-area::before {
+                animation: none;
+                opacity: 0.1;
+            }
+        }
     }
     
     /* Adjust city frames for mobile */
@@ -2629,15 +2649,9 @@ textarea:focus {
     
     .footer-about h3,
     .footer-links h3,
-    .footer-services h3,
-    .footer-newsletter h3 {
+    .footer-services h3 {
         font-size: 18px;
         margin-bottom: 10px;
-    }
-    
-    .newsletter-form {
-        flex-direction: column;
-        gap: 10px;
     }
     
     .footer-bottom p {
