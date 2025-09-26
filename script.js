@@ -1,6 +1,16 @@
 // Main JavaScript file for Magic CleanDom
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Check for image loading errors
+    const images = document.querySelectorAll('img');
+    images.forEach(img => {
+        img.addEventListener('error', function() {
+            console.error('Failed to load image:', this.src);
+            // Optionally add a placeholder or hide the image
+            this.style.display = 'none';
+        });
+    });
+    
     // Hero cleaning effect
     setupHeroCleaningEffect();
     
@@ -8,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupExperienceVideo() {
         const modal = document.getElementById('experienceVideoModal');
         const experienceBtn = document.querySelector('.experience-feature');
-        const closeBtn = modal?.querySelector('.close');
+        const closeBtn = modal?.querySelector('.close'); // Seleciona apenas o botão close do modal de vídeo
         const videoIframe = document.getElementById('experienceVideo');
         const videoUrl = 'https://player.vimeo.com/video/1121414581?autoplay=1&color=ffffff&title=0&byline=0&portrait=0';
         
@@ -62,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupCertificateModal() {
         const modal = document.getElementById('certificateModal');
         const certificateBtn = document.querySelector('.feature .fa-certificate')?.closest('.feature');
-        const closeBtn = document.querySelector('.close');
+        const closeBtn = modal?.querySelector('.close'); // Seleciona apenas o botão close do modal de certificados
         
         if (!modal) return;
         
@@ -72,6 +82,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const nextButton = document.querySelector('.carousel-button.next');
         const indicators = document.querySelectorAll('.indicator');
         let currentSlide = 0;
+        let zoomLevel = 1;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let translateX = 0;
+        let translateY = 0;
         
         // Função para mostrar um slide específico
         function showSlide(index) {
@@ -142,7 +158,29 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.body.style.overflow = 'hidden';
                 // Mostra o primeiro slide ao abrir o modal
                 showSlide(0);
+                // Mostrar instrução de zoom
+                showZoomInstruction();
             });
+        }
+        
+        // Função para mostrar instrução de zoom
+        function showZoomInstruction() {
+            const existingInstruction = modal.querySelector('.zoom-instruction');
+            if (existingInstruction) {
+                existingInstruction.remove();
+            }
+            
+            const instruction = document.createElement('div');
+            instruction.className = 'zoom-instruction';
+            instruction.innerHTML = '🔍 Desktop: Scroll para zoom • Arraste para mover<br>📱 Mobile: Pinça para zoom • Toque duplo para resetar';
+            modal.appendChild(instruction);
+            
+            // Remove a instrução após 4 segundos
+            setTimeout(() => {
+                if (instruction.parentNode) {
+                    instruction.remove();
+                }
+            }, 4000);
         }
         
         // Fechar modal ao clicar no X
@@ -150,6 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
             closeBtn.addEventListener('click', function() {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
+                resetZoom(); // Reset zoom ao fechar
             });
         }
         
@@ -158,8 +197,207 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.target === modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
+                resetZoom(); // Reset zoom ao fechar
             }
         });
+        
+        // Função para resetar o zoom
+        function resetZoom() {
+            zoomLevel = 1;
+            translateX = 0;
+            translateY = 0;
+            const activeSlide = document.querySelector('.carousel-slide.active img');
+            if (activeSlide) {
+                activeSlide.style.transform = 'scale(1) translate(0px, 0px)';
+                activeSlide.style.cursor = 'zoom-in';
+            }
+        }
+        
+        // Função para aplicar zoom
+        function applyZoom(img) {
+            const transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
+            img.style.transform = transform;
+            img.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+        }
+        
+        // Adicionar funcionalidade de zoom com scroll nas imagens
+        function setupImageZoom() {
+            slides.forEach(slide => {
+                const img = slide.querySelector('img');
+                if (!img) return;
+                
+                // Reset initial state
+                img.style.transition = 'transform 0.3s ease';
+                img.style.cursor = 'zoom-in';
+                img.style.transformOrigin = 'center center';
+                
+                // Zoom com scroll do mouse
+                img.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    
+                    const rect = img.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Calcular posição relativa (0-1)
+                    const xPercent = x / rect.width;
+                    const yPercent = y / rect.height;
+                    
+                    const zoomFactor = 0.1;
+                    const oldZoom = zoomLevel;
+                    
+                    if (e.deltaY < 0) {
+                        // Zoom in
+                        zoomLevel = Math.min(zoomLevel + zoomFactor, 3);
+                    } else {
+                        // Zoom out
+                        zoomLevel = Math.max(zoomLevel - zoomFactor, 1);
+                    }
+                    
+                    // Se voltou ao zoom 1, resetar posição
+                    if (zoomLevel === 1) {
+                        translateX = 0;
+                        translateY = 0;
+                    } else {
+                        // Ajustar posição para manter o ponto do mouse no centro do zoom
+                        const zoomChange = zoomLevel - oldZoom;
+                        translateX -= (xPercent - 0.5) * rect.width * zoomChange / zoomLevel;
+                        translateY -= (yPercent - 0.5) * rect.height * zoomChange / zoomLevel;
+                    }
+                    
+                    applyZoom(img);
+                });
+                
+                // Arrastar quando com zoom
+                img.addEventListener('mousedown', function(e) {
+                    if (zoomLevel <= 1) return;
+                    
+                    isDragging = true;
+                    startX = e.clientX - translateX;
+                    startY = e.clientY - translateY;
+                    img.style.cursor = 'grabbing';
+                    img.style.transition = 'none';
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (!isDragging || zoomLevel <= 1) return;
+                    
+                    translateX = e.clientX - startX;
+                    translateY = e.clientY - startY;
+                    
+                    // Limitar o arrasto para não sair muito da imagem
+                    const maxTranslate = 100 * zoomLevel;
+                    translateX = Math.max(-maxTranslate, Math.min(maxTranslate, translateX));
+                    translateY = Math.max(-maxTranslate, Math.min(maxTranslate, translateY));
+                    
+                    const activeImg = document.querySelector('.carousel-slide.active img');
+                    if (activeImg) {
+                        applyZoom(activeImg);
+                    }
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        const activeImg = document.querySelector('.carousel-slide.active img');
+                        if (activeImg) {
+                            activeImg.style.transition = 'transform 0.3s ease';
+                            activeImg.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+                        }
+                    }
+                });
+                
+                // Clique duplo para resetar zoom
+                img.addEventListener('dblclick', function() {
+                    zoomLevel = 1;
+                    translateX = 0;
+                    translateY = 0;
+                    applyZoom(img);
+                });
+                
+                // Suporte para touch/mobile
+                let touchStartDistance = 0;
+                let touchStartZoom = 1;
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let touchStartTranslateX = 0;
+                let touchStartTranslateY = 0;
+                
+                img.addEventListener('touchstart', function(e) {
+                    if (e.touches.length === 2) {
+                        // Pinch to zoom
+                        e.preventDefault();
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+                        touchStartDistance = Math.hypot(
+                            touch2.clientX - touch1.clientX,
+                            touch2.clientY - touch1.clientY
+                        );
+                        touchStartZoom = zoomLevel;
+                    } else if (e.touches.length === 1 && zoomLevel > 1) {
+                        // Single touch drag when zoomed
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        touchStartX = touch.clientX;
+                        touchStartY = touch.clientY;
+                        touchStartTranslateX = translateX;
+                        touchStartTranslateY = translateY;
+                        img.style.transition = 'none';
+                    }
+                });
+                
+                img.addEventListener('touchmove', function(e) {
+                    if (e.touches.length === 2) {
+                        // Pinch to zoom
+                        e.preventDefault();
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+                        const currentDistance = Math.hypot(
+                            touch2.clientX - touch1.clientX,
+                            touch2.clientY - touch1.clientY
+                        );
+                        
+                        const scale = currentDistance / touchStartDistance;
+                        zoomLevel = Math.max(1, Math.min(3, touchStartZoom * scale));
+                        
+                        if (zoomLevel === 1) {
+                            translateX = 0;
+                            translateY = 0;
+                        }
+                        
+                        applyZoom(img);
+                    } else if (e.touches.length === 1 && zoomLevel > 1) {
+                        // Single touch drag when zoomed
+                        e.preventDefault();
+                        const touch = e.touches[0];
+                        translateX = touchStartTranslateX + (touch.clientX - touchStartX);
+                        translateY = touchStartTranslateY + (touch.clientY - touchStartY);
+                        
+                        // Limitar o arrasto
+                        const maxTranslate = 100 * zoomLevel;
+                        translateX = Math.max(-maxTranslate, Math.min(maxTranslate, translateX));
+                        translateY = Math.max(-maxTranslate, Math.min(maxTranslate, translateY));
+                        
+                        applyZoom(img);
+                    }
+                });
+                
+                img.addEventListener('touchend', function(e) {
+                    img.style.transition = 'transform 0.3s ease';
+                });
+            });
+        }
+        
+        // Inicializar zoom nas imagens
+        setupImageZoom();
+        
+        // Reset zoom quando trocar de slide
+        const originalShowSlide = showSlide;
+        showSlide = function(index) {
+            resetZoom();
+            originalShowSlide(index);
+        };
     }
     
     // Inicializar o modal de certificados
@@ -274,6 +512,15 @@ if (contactForm) {
 function setupHeroCleaningEffect() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
+    
+    // Check if mobile device
+    const isMobile = window.innerWidth <= 768;
+    
+    // Disable cleaning effect on mobile to improve performance and prevent scroll issues
+    if (isMobile) {
+        console.log('🧹 Cleaning effect disabled on mobile for better performance');
+        return;
+    }
     
     // Create canvas for cleaning trail
     const canvas = document.createElement('canvas');
@@ -427,19 +674,42 @@ function setupHeroCleaningEffect() {
     hero.addEventListener('mousemove', cleaning);
     hero.addEventListener('mouseleave', stopCleaning);
     
-    // Touch events for mobile - simplified for hover-like behavior
+    // Touch events for mobile - allow scroll but enable cleaning effect
+    let touchStartY = 0;
+    let touchStartX = 0;
+    let isHorizontalMove = false;
+    
+    hero.addEventListener('touchstart', (e) => {
+        touchStartY = e.touches[0].clientY;
+        touchStartX = e.touches[0].clientX;
+        isHorizontalMove = false;
+    });
+    
     hero.addEventListener('touchmove', (e) => {
-        e.preventDefault();
         const touch = e.touches[0];
-        const mouseEvent = new MouseEvent('mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        hero.dispatchEvent(mouseEvent);
+        const deltaY = Math.abs(touch.clientY - touchStartY);
+        const deltaX = Math.abs(touch.clientX - touchStartX);
+        
+        // Determine if this is primarily a vertical scroll
+        if (deltaY > deltaX && deltaY > 10) {
+            // This is a vertical scroll - allow it and don't trigger cleaning
+            return;
+        } else if (deltaX > 10 || deltaY > 10) {
+            // This is horizontal movement or intentional cleaning gesture
+            isHorizontalMove = true;
+            e.preventDefault(); // Only prevent default for cleaning gestures
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            hero.dispatchEvent(mouseEvent);
+        }
     });
     
     hero.addEventListener('touchend', (e) => {
-        e.preventDefault();
+        if (isHorizontalMove) {
+            e.preventDefault();
+        }
         stopCleaning();
     });
     

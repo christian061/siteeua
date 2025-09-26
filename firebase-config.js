@@ -22,38 +22,42 @@
       return;
     }
 
+    // Check if already initialized to prevent warnings
+    if (window.db) {
+      console.log('🔄 Firebase already initialized, skipping...');
+      return;
+    }
+
     // Initialize Firebase
     if (window.firebase.apps && window.firebase.apps.length) {
       window.firebaseApp = window.firebase.app();
+      console.log('🔄 Using existing Firebase app');
     } else {
       window.firebaseApp = window.firebase.initializeApp(firebaseConfig);
+      console.log('🚀 Firebase app initialized');
     }
 
-    // Initialize Firestore
-    window.db = window.firebase.firestore();
-
-    // Configure Firestore settings with new cache API
+    // Initialize Firestore with modern settings
     const firestoreSettings = {
-      // Enable offline persistence
+      // Use new cache API instead of deprecated methods
       cache: {
-        sdkCacheSizeBytes: 50 * 1024 * 1024 // 50MB cache size
-      }
+        sizeBytes: 50 * 1024 * 1024 // 50MB cache size
+      },
+      // Merge settings to avoid override warning
+      merge: true
     };
 
-    // Apply settings
-    window.db.settings(firestoreSettings);
-
-    // For backward compatibility, also set up persistence
-    if (window.db.enablePersistence) {
-      window.db.enablePersistence({
-        synchronizeTabs: true
-      }).catch(function(err) {
-        if (err.code === 'failed-precondition') {
-          console.warn('Multi-tab persistence is not supported in this browser');
-        } else if (err.code === 'unimplemented') {
-          console.warn('Persistence is not supported in this browser');
-        }
-      });
+    // Initialize Firestore with settings
+    window.db = window.firebase.firestore();
+    
+    // Apply settings with merge option to avoid override warning
+    try {
+      window.db.settings(firestoreSettings);
+      console.log('✅ Firestore initialized with modern cache settings');
+    } catch (settingsError) {
+      console.warn('⚠️ Could not apply Firestore settings:', settingsError);
+      // Fallback to basic initialization
+      window.db = window.firebase.firestore();
     }
   } catch (e) {
     console.error('Error initializing Firebase:', e);

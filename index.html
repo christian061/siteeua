@@ -3,13 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Permissions-Policy" content="autoplay=(self https://player.vimeo.com), fullscreen=(self https://player.vimeo.com), picture-in-picture=(self https://player.vimeo.com)">
     <title>Magic CleanDom - Where Cleans Come True</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" as="style">
+    
+    <!-- DNS prefetch for external resources -->
+    <link rel="dns-prefetch" href="//cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//fonts.gstatic.com">
+    <link rel="dns-prefetch" href="//code.jquery.com">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" media="print" onload="this.media='all'">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    
+    <!-- jQuery with async loading -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous" defer></script>
 </head>
 <body>
     <!-- Header Section -->
@@ -91,7 +105,7 @@
                     </div>
                 </div>
                 <div class="about-image">
-                    <img src="assets/images/story.jpg" alt="Nossa História" class="story-image">
+                    <img src="assets/images/story.jpg" alt="Nossa História" class="story-image" loading="lazy">
                 </div>
             </div>
         </div>
@@ -162,27 +176,27 @@
             </div>
             <div class="cities">
                 <div class="city city-haines" data-city="Haines City" aria-label="Haines City">
-                    <img class="city-bg" src="assets/images/haines-city.jpg" alt="Haines City" />
+                    <img class="city-bg" src="assets/images/haines-city.jpg" alt="Haines City" loading="lazy" />
                     <div class="city-name">Haines City</div>
                 </div>
                 <div class="city city-davenport" data-city="Davenport" aria-label="Davenport">
-                    <img class="city-bg" src="assets/images/deven-port.jpg" alt="Davenport" />
+                    <img class="city-bg" src="assets/images/deven-port.jpg" alt="Davenport" loading="lazy" />
                     <div class="city-name">Davenport</div>
                 </div>
                 <div class="city city-winter-haven" data-city="Winter Haven" aria-label="Winter Haven">
-                    <img class="city-bg" src="assets/images/whinter%20haven.jpg" alt="Winter Haven" />
+                    <img class="city-bg" src="assets/images/whinter%20haven.jpg" alt="Winter Haven" loading="lazy" />
                     <div class="city-name">Winter Haven</div>
                 </div>
                 <div class="city city-kissimmee" data-city="Kissimmee" aria-label="Kissimmee">
-                    <img class="city-bg" src="assets/images/kassimmee.jpg" alt="Kissimmee" />
+                    <img class="city-bg" src="assets/images/kassimmee.jpg" alt="Kissimmee" loading="lazy" />
                     <div class="city-name">Kissimmee</div>
                 </div>
                 <div class="city city-clermont" data-city="Clermont" aria-label="Clermont">
-                    <img class="city-bg" src="assets/images/clermont.jpg" alt="Clermont" />
+                    <img class="city-bg" src="assets/images/clermont.jpg" alt="Clermont" loading="lazy" />
                     <div class="city-name">Clermont</div>
                 </div>
                 <div class="city city-celebration" data-city="Celebration" aria-label="Celebration">
-                    <img class="city-bg" src="assets/images/celebration.jpg" alt="Celebration" />
+                    <img class="city-bg" src="assets/images/celebration.jpg" alt="Celebration" loading="lazy" />
                     <div class="city-name">Celebration</div>
                 </div>
             </div>
@@ -367,14 +381,15 @@
 
     <a href="#home" class="back-to-top"><i class="fas fa-arrow-up"></i></a>
 
-    <!-- Firebase SDKs (compat for simplicity) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase SDKs (compat for simplicity) - Load async -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js" defer></script>
     <!-- Your Firebase config: edit firebase-config.js with your project's keys -->
-    <script src="firebase-config.js"></script>
+    <script src="firebase-config.js" defer></script>
 
-    <script src="script.js"></script>
-    <script src="google-reviews.js"></script>
+    <!-- Main scripts with defer for better performance -->
+    <script src="script.js" defer></script>
+    <script src="google-reviews.js" defer></script>
     
     <!-- Experience Video Modal -->
     <div id="experienceVideoModal" class="modal">
@@ -383,8 +398,8 @@
             <h2>Our Experience</h2>
             <div class="video-container">
                 <iframe id="experienceVideo" src="" frameborder="0" 
-                    allow="autoplay; fullscreen; picture-in-picture" 
-                    allowfullscreen></iframe>
+                    allow="autoplay https://player.vimeo.com; fullscreen https://player.vimeo.com; picture-in-picture https://player.vimeo.com"
+                    sandbox="allow-scripts allow-same-origin allow-presentation"></iframe>
             </div>
         </div>
     </div>

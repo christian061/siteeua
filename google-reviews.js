@@ -37,13 +37,19 @@ function formatReviewDate(timestamp) {
 
 // Function to render reviews with carousel
 function renderReviews(reviews) {
+    console.log('🎬 renderReviews function started');
+    console.log('📦 Received reviews:', reviews ? reviews.length : 'null/undefined');
+    
     const reviewsContainer = document.getElementById('googleReviews');
     if (!reviewsContainer) {
-        console.error('Container #googleReviews não encontrado');
+        console.error('❌ Container #googleReviews não encontrado');
         return;
     }
     
+    console.log('✅ Container found:', reviewsContainer);
+    
     if (!reviews || reviews.length === 0) {
+        console.warn('⚠️ No reviews provided or empty array');
         reviewsContainer.innerHTML = `
             <div class="no-reviews" style="text-align: center; padding: 40px;">
                 <p>No reviews found.</p>
@@ -52,11 +58,11 @@ function renderReviews(reviews) {
         return;
     }
     
-    console.log('Renderizando', reviews.length, 'avaliações em carrossel');
+    console.log('🎯 Renderizando', reviews.length, 'avaliações em carrossel');
     
     // Create carousel HTML
     let html = `
-        <div class="testimonial-carousel-container" style="position: relative; max-width: 900px; margin: 0 auto; padding: 0 60px;">
+        <div class="testimonial-carousel-container" style="position: relative; max-width: 700px; margin: 0 auto; padding: 0 50px;">
             <div class="testimonial-carousel" style="display: flex; transition: transform 0.5s ease-in-out; overflow: visible;">
     `;
     
@@ -68,49 +74,53 @@ function renderReviews(reviews) {
             <div class="testimonial-slide" style="
                 min-width: 100%;
                 background: white; 
-                border-radius: 12px; 
-                padding: 40px; 
+                border-radius: 10px; 
+                padding: 25px; 
                 margin: 0;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+                box-shadow: 0 3px 15px rgba(0,0,0,0.1);
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 400px;
+                min-height: 300px;
                 max-height: none;
                 overflow: visible;
             ">
                 <div class="quote" style="flex-grow: 1; text-align: center;">
-                    <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 32px; margin-bottom: 20px; display: block;"></i>
-                    <p style="font-size: 16px; line-height: 1.7; color: #555; margin-bottom: 25px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word;">
-                        "${review.text.replace(/"/g, '&quot;')}"
-                    </p>
+                    <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 24px; margin-bottom: 15px; display: block;"></i>
+                    <div class="testimonial-text">
+                        <p style="font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word;">
+                            "${review.text.replace(/"/g, '&quot;')}"
+                        </p>
+                        <div class="testimonial-fade"></div>
+                    </div>
+                    <button class="read-more-btn" style="display: none;">Ver mais</button>
                 </div>
                 <div class="client" style="
                     display: flex; 
                     align-items: center; 
                     justify-content: center;
-                    padding-top: 20px; 
-                    border-top: 2px solid #f0f0f0;
+                    padding-top: 15px; 
+                    border-top: 1px solid #f0f0f0;
                 ">
                     <img 
                         src="${review.profile_photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.author_name)}&background=4CAF50&color=fff`}" 
                         alt="${review.author_name}" 
                         style="
-                            width: 60px; 
-                            height: 60px; 
+                            width: 45px; 
+                            height: 45px; 
                             border-radius: 50%; 
-                            margin-right: 15px; 
+                            margin-right: 12px; 
                             object-fit: cover;
-                            border: 3px solid #4CAF50;
+                            border: 2px solid #4CAF50;
                         "
                         onerror="this.onerror=null; this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(review.author_name)}&background=4CAF50&color=fff'"
                     >
                     <div class="client-info" style="text-align: left;">
-                        <h4 style="margin: 0 0 8px 0; font-size: 20px; color: #333; font-weight: 600;">${review.author_name}</h4>
-                        <div class="stars" style="color: #FFD700; margin-bottom: 5px; font-size: 16px; letter-spacing: 1px;">
+                        <h4 style="margin: 0 0 5px 0; font-size: 16px; color: #333; font-weight: 600;">${review.author_name}</h4>
+                        <div class="stars" style="color: #FFD700; margin-bottom: 3px; font-size: 14px; letter-spacing: 1px;">
                             ${stars}
                         </div>
-                        <span style="font-size: 14px; color: #888;">${reviewDate}</span>
+                        <span style="font-size: 12px; color: #888;">${reviewDate}</span>
                     </div>
                 </div>
             </div>
@@ -123,18 +133,18 @@ function renderReviews(reviews) {
             <!-- Navigation Arrows -->
             <button class="carousel-prev" style="
                 position: absolute;
-                left: 10px;
+                left: 5px;
                 top: 50%;
                 transform: translateY(-50%);
                 background: #4CAF50;
                 color: white;
                 border: none;
                 border-radius: 50%;
-                width: 45px;
-                height: 45px;
-                font-size: 18px;
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
                 cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
                 transition: all 0.3s ease;
                 z-index: 10;
             " onmouseover="this.style.background='#43A047'; this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.background='#4CAF50'; this.style.transform='translateY(-50%) scale(1)'">
@@ -143,18 +153,18 @@ function renderReviews(reviews) {
             
             <button class="carousel-next" style="
                 position: absolute;
-                right: 10px;
+                right: 5px;
                 top: 50%;
                 transform: translateY(-50%);
                 background: #4CAF50;
                 color: white;
                 border: none;
                 border-radius: 50%;
-                width: 45px;
-                height: 45px;
-                font-size: 18px;
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
                 cursor: pointer;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
                 transition: all 0.3s ease;
                 z-index: 10;
             " onmouseover="this.style.background='#43A047'; this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.background='#4CAF50'; this.style.transform='translateY(-50%) scale(1)'">
@@ -165,16 +175,16 @@ function renderReviews(reviews) {
             <div class="carousel-dots" style="
                 display: flex;
                 justify-content: center;
-                margin-top: 30px;
-                gap: 10px;
+                margin-top: 20px;
+                gap: 8px;
             ">
     `;
     
     reviews.forEach((_, index) => {
         html += `
             <button class="carousel-dot ${index === 0 ? 'active' : ''}" data-slide="${index}" style="
-                width: 12px;
-                height: 12px;
+                width: 8px;
+                height: 8px;
                 border-radius: 50%;
                 border: none;
                 background: ${index === 0 ? '#4CAF50' : '#ddd'};
@@ -189,12 +199,16 @@ function renderReviews(reviews) {
         </div>
     `;
     
+    console.log('🔧 Setting innerHTML with generated HTML...');
     reviewsContainer.innerHTML = html;
+    console.log('✅ HTML set successfully');
     
     // Initialize carousel functionality
+    console.log('🎠 Initializing carousel with', reviews.length, 'slides...');
     initializeCarousel(reviews.length);
     
-    console.log('Carrossel de avaliações renderizado com sucesso!');
+    console.log('🎉 Carrossel de avaliações renderizado com sucesso!');
+    console.log('📊 Final check - container has content:', reviewsContainer.innerHTML.length > 0);
 }
 
 
@@ -250,7 +264,9 @@ async function fetchGoogleReviews() {
         
         // Make request to Google Places API with timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
+        const isLocal = window.location.protocol === 'file:';
+        const timeoutDuration = isLocal ? 1000 : 3000; // Faster timeout for local files
+        const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
         
         console.log('🌐 Tentando chamada direta para:', url);
         
@@ -267,9 +283,15 @@ async function fetchGoogleReviews() {
                 cache: 'no-cache'
             });
         } catch (corsError) {
-            console.log('❌ Erro CORS na chamada direta, tentando com proxy...');
+            console.log('❌ CORS error (expected when running locally)');
             
-            // If CORS fails, try with proxy
+            // Skip proxy attempt for local files as it won't work either
+            if (window.location.protocol === 'file:') {
+                console.log('🏠 Local file detected - skipping proxy attempt');
+                throw new Error('LOCAL_FILE_CORS_EXPECTED');
+            }
+            
+            // If CORS fails and not local, try with proxy
             const proxyUrl = 'https://api.allorigins.win/raw?url=';
             const proxiedUrl = proxyUrl + encodeURIComponent(url);
             console.log('🔄 Tentando com proxy:', proxiedUrl);
@@ -403,11 +425,11 @@ async function fetchGoogleReviews() {
         } else if (error.message.includes('PERMISSAO_NEGADA') || error.message.includes('403')) {
             errorMessage = '🚫 Permission denied. Showing sample reviews...';
             console.error('🚫 Erro de permissão:', error.message);
-        } else if (error.message.includes('CORS') || error.message.includes('origin')) {
-            errorMessage = '🌐 CORS error - Browser blocked the request. Showing sample reviews...';
-            console.error('🌐 Erro de CORS:', error.message);
+        } else if (error.message.includes('CORS') || error.message.includes('origin') || error.message.includes('blocked') || error.message.includes('ERR_FAILED') || error.message === 'LOCAL_FILE_CORS_EXPECTED') {
+            errorMessage = '🌐 Cannot load real Google reviews (CORS/Network restriction)';
+            console.log('ℹ️ This is normal when running locally - Google API blocks file:// requests');
         } else if (error.message.includes('Failed to fetch')) {
-            errorMessage = '🔌 Network error - Could not connect to Google API. Showing sample reviews...';
+            errorMessage = '🔌 Network error - Using sample reviews...';
             console.error('🔌 Erro de rede:', error.message);
         } else {
             errorMessage = '❓ Unknown error occurred. Showing sample reviews...';
@@ -423,10 +445,10 @@ async function fetchGoogleReviews() {
             </div>
         `;
         
-        // Carregar depoimentos de exemplo após 1 segundo
+        // Carregar depoimentos de exemplo após 500ms
         setTimeout(() => {
             loadSampleReviews();
-        }, 1000);
+        }, 500);
     }
 }
 
@@ -475,7 +497,8 @@ function showErrorMessage(message) {
 
 // Function to load sample reviews (fallback) - All in English
 function loadSampleReviews() {
-    console.log('Loading sample reviews in English...');
+    console.log('🔄 Loading sample reviews in English...');
+    console.log('📊 Preparing 10 testimonials for display...');
     
     const reviews = [
         {
@@ -582,8 +605,11 @@ function loadSampleReviews() {
     
     // Simular um pequeno atraso para parecer uma requisição real
     setTimeout(() => {
-        console.log('Sample reviews loaded successfully');
+        console.log('✅ Sample reviews loaded successfully');
+        console.log('📋 Total reviews to display:', reviews.length);
+        console.log('🎯 Calling renderReviews function...');
         renderReviews(reviews);
+        console.log('🎉 renderReviews function called successfully');
     }, 800);
 }
 
@@ -646,43 +672,131 @@ function initializeCarousel(totalSlides) {
     });
     
     console.log('Carousel initialized with', totalSlides, 'slides');
+    
+    // Initialize read more functionality for mobile
+    initializeReadMore();
+}
+
+// Function to initialize read more functionality
+function initializeReadMore() {
+    // Only apply on mobile devices
+    function checkAndApplyMobile() {
+        const isMobile = window.innerWidth <= 768;
+        const testimonials = document.querySelectorAll('.testimonial-slide');
+        
+        testimonials.forEach(testimonial => {
+            const textContainer = testimonial.querySelector('.testimonial-text');
+            const readMoreBtn = testimonial.querySelector('.read-more-btn');
+            const fadeElement = testimonial.querySelector('.testimonial-fade');
+            
+            if (!textContainer || !readMoreBtn) return;
+            
+            if (isMobile) {
+                const textElement = textContainer.querySelector('p');
+                const textHeight = textElement.scrollHeight;
+                const containerHeight = 120; // Same as CSS max-height
+                
+                if (textHeight > containerHeight) {
+                    readMoreBtn.style.display = 'inline-block';
+                    if (fadeElement) fadeElement.style.display = 'block';
+                    
+                    readMoreBtn.onclick = function() {
+                        const isExpanded = testimonial.classList.contains('expanded');
+                        
+                        if (isExpanded) {
+                            testimonial.classList.remove('expanded');
+                            readMoreBtn.textContent = 'Ver mais';
+                            if (fadeElement) fadeElement.style.display = 'block';
+                        } else {
+                            testimonial.classList.add('expanded');
+                            readMoreBtn.textContent = 'Ver menos';
+                            if (fadeElement) fadeElement.style.display = 'none';
+                        }
+                    };
+                } else {
+                    readMoreBtn.style.display = 'none';
+                    if (fadeElement) fadeElement.style.display = 'none';
+                }
+            } else {
+                // Desktop - always show full text
+                testimonial.classList.remove('expanded');
+                readMoreBtn.style.display = 'none';
+                if (fadeElement) fadeElement.style.display = 'none';
+            }
+        });
+    }
+    
+    // Apply on load and resize
+    checkAndApplyMobile();
+    window.addEventListener('resize', checkAndApplyMobile);
 }
 
 // Inicializar quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', async function() {
     console.log('DOM carregado, iniciando busca de avaliações...');
     
-    // Verificar se o container existe
-    const reviewsContainer = document.getElementById('googleReviews');
-    if (reviewsContainer) {
-        console.log('Container de avaliações encontrado, iniciando fetchGoogleReviews...');
+    // Check if mobile and delay loading for better performance
+    const isMobile = window.innerWidth <= 768;
+    const isLocalFile = window.location.protocol === 'file:';
+    const delay = isMobile ? 1000 : 0; // Reduced delay for better UX
+    
+    setTimeout(async () => {
+        // Verificar se o container existe
+        const reviewsContainer = document.getElementById('googleReviews');
+        if (reviewsContainer) {
+            console.log('Container de avaliações encontrado...');
+        
+        // Sempre tentar carregar reviews reais primeiro, mesmo localmente
+        console.log('🔍 Tentando carregar reviews reais do Google My Business...');
         
         // Mostrar status inicial
         reviewsContainer.innerHTML = `
             <div class="loading-reviews" style="text-align: center; padding: 40px;">
                 <div class="spinner" style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #4CAF50; border-radius: 50%; margin: 0 auto 15px; animation: spin 1s linear infinite;"></div>
-                <p style="color: #666; margin-bottom: 10px;">🔍 Trying to load Google My Business reviews...</p>
-                <p style="color: #999; font-size: 14px;">This may take a few seconds</p>
+                <p style="color: #666; margin-bottom: 10px;">🔍 Loading Google My Business reviews...</p>
+                <p style="color: #999; font-size: 14px;">Connecting to Google Places API...</p>
             </div>
         `;
         
-        // Tentar buscar avaliações do Google primeiro
-        console.log('🚀 Iniciando busca de depoimentos do Google My Business...');
+        // Tentar buscar avaliações reais do Google primeiro
+        console.log('🚀 Iniciando busca de depoimentos REAIS do Google My Business...');
         
         try {
             await fetchGoogleReviews();
         } catch (error) {
-            console.error('❌ Falha total na busca do Google:', error);
-            
-            // Mostrar mensagem de erro específica
-            reviewsContainer.innerHTML = `
-                <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #ffc107;">
-                    <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Google Reviews Unavailable</h4>
-                    <p style="color: #6c757d; margin: 0 0 15px 0;">Unable to load reviews from Google My Business.</p>
-                    <p style="color: #6c757d; margin: 0 0 20px 0; font-size: 14px;">Showing sample testimonials instead...</p>
-                    <div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #ffc107; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
-                </div>
-            `;
+            // Handle expected local file error silently
+            if (error.message === 'LOCAL_FILE_CORS_EXPECTED') {
+                console.log('ℹ️ Running locally - loading sample reviews (this is normal)');
+                
+                // Show a simpler, less alarming message for local files
+                reviewsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 20px; background: #e8f4fd; border-radius: 8px; border-left: 4px solid #2196F3;">
+                        <h4 style="color: #1565C0; margin: 0 0 10px 0;">📋 Preview Mode</h4>
+                        <p style="color: #424242; margin: 0 0 15px 0;">Running locally - showing sample testimonials</p>
+                        <p style="color: #666; margin: 0 0 20px 0; font-size: 13px;">Deploy to a web server to see real Google reviews</p>
+                        <div class="spinner" style="width: 25px; height: 25px; border: 3px solid #f3f3f3; border-top: 3px solid #2196F3; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+                    </div>
+                `;
+            } else {
+                console.error('❌ Falha total na busca do Google:', error);
+                
+                // Show detailed error message for other errors
+                reviewsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 30px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ Cannot Load Real Google Reviews</h4>
+                        <p style="color: #6c757d; margin: 0 0 15px 0;"><strong>Reason:</strong> Network or API error</p>
+                        <div style="background: #e7f3ff; padding: 15px; border-radius: 6px; margin: 15px 0;">
+                            <p style="color: #0c5460; margin: 0; font-size: 14px;"><strong>💡 To see real Google reviews:</strong></p>
+                            <p style="color: #0c5460; margin: 5px 0 0 0; font-size: 13px;">
+                                • Deploy this site to a web server (GitHub Pages, Netlify, etc.)<br>
+                                • Or run a local web server (not file://)
+                            </p>
+                        </div>
+                        <p style="color: #6c757d; margin: 0 0 20px 0; font-size: 14px;">Loading sample testimonials for preview...</p>
+                        <div class="spinner" style="width: 30px; height: 30px; border: 3px solid #f3f3f3; border-top: 3px solid #ffc107; border-radius: 50%; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+                    </div>
+                `;
+            }
             
             // Carregar exemplos após 2 segundos
             setTimeout(() => {
@@ -690,17 +804,30 @@ document.addEventListener('DOMContentLoaded', async function() {
             }, 2000);
         }
         
-        // Timeout de segurança absoluto - 10 segundos
+        // Timeout de segurança absoluto - 5 segundos
         setTimeout(() => {
-            if (reviewsContainer.querySelector('.loading-reviews') || reviewsContainer.innerHTML.includes('Google Reviews Unavailable')) {
+            if (reviewsContainer.querySelector('.loading-reviews') || reviewsContainer.innerHTML.includes('Google Reviews Unavailable') || reviewsContainer.innerHTML.includes('Loading testimonials')) {
                 console.log('⏰ Timeout final atingido, forçando carregamento de exemplos...');
+                console.log('🔄 Garantindo que os 10 depoimentos sejam exibidos...');
                 loadSampleReviews();
             }
-        }, 10000);
+        }, 5000);
         
     } else {
         console.error('Container #googleReviews não encontrado no DOM');
     }
+    }, delay); // Close setTimeout
+}); // Close DOMContentLoaded
+
+// Backup fallback - garantir que os reviews carreguem
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        const reviewsContainer = document.getElementById('googleReviews');
+        if (reviewsContainer && (reviewsContainer.innerHTML.includes('loading-reviews') || reviewsContainer.innerHTML.trim() === '')) {
+            console.log('🚨 Backup fallback ativado - carregando reviews de emergência...');
+            loadSampleReviews();
+        }
+    }, 3000);
 });
 
 // Adicionar CSS para animações
