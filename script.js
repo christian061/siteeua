@@ -1,6 +1,12 @@
 // Main JavaScript file for Magic CleanDom
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Garantir que o modal está fechado ao carregar a página
+    const modal = document.getElementById('certificateModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
     // Check for image loading errors
     const images = document.querySelectorAll('img');
     images.forEach(img => {
@@ -17,21 +23,35 @@ document.addEventListener('DOMContentLoaded', function() {
     // Modal do Vídeo de Experiência
     function setupExperienceVideo() {
         const modal = document.getElementById('experienceVideoModal');
-        const experienceBtn = document.querySelector('.experience-feature');
-        const closeBtn = modal?.querySelector('.close'); // Seleciona apenas o botão close do modal de vídeo
+        const experienceBtn = document.querySelector('.feature.experience-feature'); // Seleciona o botão de experiência
+        const closeBtn = modal?.querySelector('.close');
         const videoIframe = document.getElementById('experienceVideo');
         const videoUrl = 'https://player.vimeo.com/video/1121414581?autoplay=1&color=ffffff&title=0&byline=0&portrait=0';
         
-        if (!modal || !experienceBtn) return;
+        console.log('Modal:', modal);
+        console.log('Experience Button:', experienceBtn);
+        
+        if (!modal) {
+            console.error('Modal de vídeo não encontrado');
+            return;
+        }
+        
+        if (!experienceBtn) {
+            console.error('Botão de experiência não encontrado');
+            return;
+        }
         
         // Abrir modal ao clicar no botão de experiência
         experienceBtn.style.cursor = 'pointer';
         experienceBtn.addEventListener('click', function(e) {
+            console.log('Botão de experiência clicado');
             e.preventDefault();
-            modal.style.display = 'block';
+            e.stopPropagation();
+            modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
             // Define o src do iframe ao abrir o modal
             videoIframe.src = videoUrl;
+            console.log('Modal aberto e vídeo iniciado');
         });
         
         // Fechar modal ao clicar no X
@@ -68,7 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Inicializar o modal do vídeo de experiência
     setupExperienceVideo();
     
-    // Modal e Carrossel de Certificados
+    // Função para configurar o modal de certificados
     function setupCertificateModal() {
         const modal = document.getElementById('certificateModal');
         const certificateBtn = document.querySelector('.feature .fa-certificate')?.closest('.feature');

@@ -844,42 +844,14 @@ a.feature.feature-link {
 .feature.experience-feature {
     background: linear-gradient(135deg, #e3f2fd, #bbdefb);
     color: #0d47a1;
-    border: 1px solid rgba(13, 71, 161, 0.3) !important; /* Borda azul mais visível */
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(13, 71, 161, 0.15);
+    border: 1px solid rgba(13, 71, 161, 0.3) !important;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .feature.experience-feature i {
-    color: #1565c0;
-    font-size: 1.2rem;
-    position: relative;
-    z-index: 2;
-}
-
-.feature.experience-feature::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        90deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.4) 20%,
-        rgba(255, 255, 255, 0.8) 50%,
-        rgba(255, 255, 255, 0.4) 80%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    transform: translateX(-100%);
-    transition: transform 0.6s ease;
-    z-index: 1;
-}
-
-.feature.experience-feature:hover::before {
-    transform: translateX(100%);
-    transition: transform 1s ease-in-out;
+    color: var(--primary-color);
+    font-size: 1.1rem;
 }
 
 /* Estilo para os links de recurso */
@@ -950,6 +922,31 @@ a.feature.feature-link.award-link {
     color: #2c2c2c;
     border: 1px solid rgba(0, 0, 0, 0.1) !important; /* Borda sutil */
     font-weight: 600;
+}
+
+/* Estilo específico para o botão 100% Satisfaction */
+a.feature.feature-link[aria-label*="satisfaction"] {
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    color: #1b5e20;
+    border: 1px solid #81c784 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-weight: 500;
+    width: 280px;
+    display: inline-flex;
+    flex: 0 0 280px;
+    max-width: 280px;
+    margin: 0 5px;
+}
+
+a.feature.feature-link[aria-label*="satisfaction"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(27, 94, 32, 0.2);
+}
+
+a.feature.feature-link[aria-label*="satisfaction"] i {
+    color: #2e7d32;
+    font-size: 1.3rem;
+    margin-right: 8px;
 }
 
 a.feature.feature-link.award-link:hover {
@@ -2870,32 +2867,63 @@ textarea:focus {
     box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.5);
 }
 
-/* Estilos do Modal de Certificados */
+/* Estilos do Modal */
 .modal {
-    display: none;
+    display: none; /* Inicialmente oculto */
     position: fixed;
     z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    overflow: auto;
-    padding: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 0;
     box-sizing: border-box;
+    align-items: center; /* Centraliza verticalmente */
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
-/* Estilos para o container do vídeo */
+.modal[style*="display: flex"],
+.modal[style*="display:block"] {
+    display: flex !important;
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fff;
+    margin: 20px auto;
+    padding: 25px;
+    border-radius: 8px;
+    width: 95%;
+    max-width: 900px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    transform: translateY(0);
+    transition: transform 0.3s ease;
+}
+
+/* Estilo específico para o modal de vídeo */
+#experienceVideoModal .modal-content {
+    padding: 15px;
+    width: 90%;
+    max-width: 1000px;
+}
+
 .video-container {
     position: relative;
     padding-bottom: 56.25%; /* Proporção 16:9 */
     height: 0;
     overflow: hidden;
-    max-width: 100%;
-    background: #000;
-    margin: 20px 0;
-    border-radius: 8px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin-top: 15px;
 }
 
 .video-container iframe {
@@ -2905,20 +2933,6 @@ textarea:focus {
     width: 100%;
     height: 100%;
     border: none;
-}
-
-.modal-content {
-    position: relative;
-    background-color: #fff;
-    margin: 3% auto;
-    padding: 20px;
-    max-width: 800px;
-    width: 85%;
-    max-height: 90vh;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    animation: modalFadeIn 0.3s;
-    overflow: hidden;
 }
 
 .modal h2 {
@@ -2959,16 +2973,20 @@ textarea:focus {
 
 /* Responsividade */
 @media (max-width: 768px) {
-    .video-container {
-        margin: 15px 0;
+    .modal {
+        padding: 10px;
+        align-items: flex-start;
     }
     
     .modal-content {
-        width: 95%;
-        margin: 5% auto;
+        width: 100%;
+        margin: 0;
         padding: 15px;
-        max-height: 95vh;
+        max-height: 90vh;
         overflow-y: auto;
+        position: relative;
+        top: 0;
+        transform: none;
     }
     
     .modal h2 {
