@@ -47,10 +47,27 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Botão de experiência clicado');
             e.preventDefault();
             e.stopPropagation();
+            
+            // Salva a posição de rolagem atual
+            const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Abre o modal
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
+            
+            // Ajusta a posição do modal para a visão atual
+            modal.scrollTop = 0;
+            
             // Define o src do iframe ao abrir o modal
             videoIframe.src = videoUrl;
+            
+            // Restaura a posição de rolagem se necessário
+            if (window.innerWidth <= 768) {
+                window.scrollTo(0, 0);
+            } else {
+                window.scrollTo(0, scrollPosition);
+            }
+            
             console.log('Modal aberto e vídeo iniciado');
         });
         

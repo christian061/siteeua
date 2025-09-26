@@ -2570,39 +2570,16 @@ textarea:focus {
             overflow-x: hidden;
             padding: 30px 15px;
             margin: 10px !important;
-            border: 5px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 8px !important;
-            background: linear-gradient(135deg, #616264b9, #535252, #cfcfce) !important;
-            background-size: 200% 200% !important;
-            position: relative;
+            background: #555 !important; /* Cor sólida em vez de gradiente */
+            animation: none !important; /* Remove animações */
             z-index: 1;
+            position: relative;
         }
         
-        /* Efeito de luz suave para mobile */
-        .service-area::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(
-                circle at 20% 30%,
-                rgba(255, 255, 255, 0.15) 0%,
-                rgba(255, 255, 255, 0) 60%
-            );
-            z-index: -1;
-            pointer-events: none;
-            animation: mobileLightMove 12s ease-in-out infinite alternate;
-        }
-        
-        @keyframes mobileLightMove {
-            0% {
-                transform: translateX(-10%) translateY(-10%) scale(1.2);
-            }
-            100% {
-                transform: translateX(10%) translateY(10%) scale(1);
-            }
+        /* Remove efeitos de brilho e gradientes em mobile */
+        .service-area::before,
+        .service-area::after {
+            display: none !important;
         }
         
         .service-area .container {
@@ -2612,10 +2589,7 @@ textarea:focus {
         
         /* Otimização para reduzir travamentos */
         @media (prefers-reduced-motion: reduce) {
-            .service-area::before {
-                animation: none;
-                opacity: 0.1;
-            }
+            /* Efeitos já removidos */
         }
     }
     
@@ -2885,25 +2859,19 @@ textarea:focus {
     z-index: 1000;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7);
-    justify-content: center;
-    align-items: center;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
+    right: 0;
+    bottom: 0;
     background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: flex-start; /* Alinha ao topo */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     padding: 20px 0;
-    box-sizing: border-box;
-    align-items: center; /* Centraliza verticalmente */
-    justify-content: center;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s ease, visibility 0.3s ease;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain; /* Evita que a rolagem passe para o conteúdo por trás */
 }
 
 .modal[style*="display: flex"],
@@ -2940,11 +2908,13 @@ textarea:focus {
     padding: 15px;
     width: 90%;
     max-width: 1000px;
-    max-height: 90%;
+    max-height: 90vh;
+    margin: 20px auto;
     position: relative;
-    top: 50%;
-    transform: translateY(-50%);
-    margin: 0 auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
 }
 
 .video-container {
@@ -3003,24 +2973,31 @@ textarea:focus {
 /* Responsividade */
 @media (max-width: 768px) {
     .modal {
-        padding: 10px;
-        align-items: center;
-        justify-content: center;
-        padding-top: 60px; /* Espaço para o cabeçalho */
+        padding: 20px 10px;
+        align-items: flex-start;
+        -webkit-overflow-scrolling: touch;
     }
     
     .modal-content {
         width: 100%;
-        margin: 0;
+        margin: 0 auto;
         padding: 15px;
-        position: relative;
-        top: 0;
-        transform: none;
         max-height: 90vh;
         overflow-y: auto;
-        position: relative;
-        top: 0;
+        position: static;
         transform: none;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Garante que o modal não fique muito próximo das bordas em telas muito pequenas */
+    @media (max-height: 600px) {
+        .modal {
+            padding: 10px 0;
+        }
+        
+        .modal-content {
+            max-height: 95vh;
+        }
     }
     
     .modal h2 {
