@@ -69,27 +69,27 @@ function renderReviews(reviews) {
     reviews.forEach((review, index) => {
         const stars = '★'.repeat(Math.floor(review.rating)) + '☆'.repeat(5 - Math.floor(review.rating));
         const reviewDate = review.relative_time_description || 'Recently';
-        
         html += `
             <div class="testimonial-slide" style="
                 min-width: 100%;
                 background: white; 
                 border-radius: 10px; 
+                padding: 20px; 
                 margin: 0;
                 box-shadow: 0 3px 15px rgba(0,0,0,0.1);
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 350px;
+                min-height: 280px;
                 height: auto;
-                max-height: none;
+                max-height: 320px;
                 overflow: visible;
             ">
                 <div class="quote" style="flex-grow: 1; text-align: center;">
-                    <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 24px; margin-bottom: 15px; display: block;"></i>
+                    <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 20px; margin-bottom: 10px; display: block;"></i>
                     <div class="testimonial-text">
-                        <p style="font-size: 15px; line-height: 1.7; color: #555; margin-bottom: 20px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-align: left; padding: 0 10px;">
-                            "${review.text.replace(/"/g, '&quot;').replace(/\n/g, '<br>')}"
+                        <p style="font-size: 14px; line-height: 1.5; color: #555; margin-bottom: 15px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; text-align: left; padding: 0 5px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
+                            "${review.text.replace(/"/g, '&quot;').replace(/\n/g, ' ')}"
                         </p>
                     </div>
                 </div>
@@ -646,8 +646,9 @@ function initializeCarousel(totalSlides) {
     
     if (!carousel || !prevBtn || !nextBtn) return;
     
-    // Configurações do carrossel contínuo
-    const autoPlayDelay = 3500; // 3.5 segundos entre slides
+    // Configurações do carrossel contínuo - MOBILE OTIMIZADO
+    const isMobile = window.innerWidth <= 768;
+    const autoPlayDelay = isMobile ? 3000 : 3500; // 3 segundos no mobile, 3.5 no desktop
     const pauseOnHover = false; // NÃO pausar ao passar o mouse
     const pauseOnInteraction = false; // NÃO pausar ao interagir
     const progressUpdateInterval = 50; // Atualizar progresso a cada 50ms

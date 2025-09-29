@@ -1897,38 +1897,65 @@ a.feature.feature-link > * {
 /* Responsive Adjustments */
 @media (max-width: 768px) {
     .testimonials {
-        padding: 40px 0;
+        padding: 30px 0; /* Reduzir padding da seção */
     }
     
     .testimonial,
     .testimonial-slide {
-        min-width: calc(100% - 40px);
-        padding: 20px;
-        max-height: none !important; /* Remover limite de altura */
+        min-width: calc(100% - 20px); /* Reduzir largura para cards menores */
+        padding: 15px !important; /* Padding menor */
+        max-height: 280px !important; /* Altura máxima para cards compactos */
         height: auto !important;
-        overflow: visible !important;
+        overflow: hidden !important; /* Manter overflow hidden para controle */
         position: relative;
-        min-height: 300px;
+        min-height: 250px !important; /* Altura mínima menor */
     }
     
     .testimonial-text {
-        max-height: none !important; /* Remover limite de altura */
+        max-height: 120px !important; /* Limitar altura do texto */
         height: auto !important;
-        overflow: visible !important;
+        overflow: hidden !important; /* Esconder texto excedente */
         position: relative;
         transition: none;
     }
     
     .testimonial-text p {
-        max-height: none !important;
-        height: auto !important;
-        overflow: visible !important;
-        white-space: normal !important;
-        text-overflow: unset !important;
+        font-size: 14px !important; /* Fonte menor */
+        line-height: 1.4 !important; /* Espaçamento menor */
+        margin-bottom: 10px !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 4 !important; /* Máximo 4 linhas */
+        line-clamp: 4 !important; /* Propriedade padrão para compatibilidade */
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
     }
     
     .testimonial-fade {
-        display: none !important; /* Remover fade que cortava o texto */
+        display: none !important;
+    }
+    
+    /* Ajustar informações do cliente */
+    .client {
+        padding-top: 10px !important;
+    }
+    
+    .client img {
+        width: 35px !important;
+        height: 35px !important;
+    }
+    
+    .client-info h4 {
+        font-size: 14px !important;
+        margin-bottom: 3px !important;
+    }
+    
+    .client-info .stars {
+        font-size: 12px !important;
+    }
+    
+    .client-info span {
+        font-size: 11px !important;
     }
     
     .read-more-btn {
@@ -2008,7 +2035,7 @@ a.feature.feature-link > * {
 
 /* Indicadores do carrossel com animação suave */
 .carousel-dot {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
     will-change: transform, background-color;
 }
 
@@ -2045,7 +2072,7 @@ a.feature.feature-link > * {
 @media (max-width: 768px) {
     .testimonial-carousel-container {
         padding: 0 35px !important;
-        min-height: 350px !important;
+        min-height: 280px !important; /* Reduzido para cards menores */
     }
     
     .testimonial-carousel {
@@ -2053,10 +2080,11 @@ a.feature.feature-link > * {
     }
     
     .testimonial-slide {
-        min-height: 320px !important;
+        min-height: 250px !important; /* Cards menores no mobile */
+        max-height: 280px !important;
         height: auto !important;
-        overflow: visible !important;
-        padding: 20px !important;
+        overflow: hidden !important; /* Esconder overflow para manter tamanho */
+        padding: 15px !important; /* Padding menor */
     }
     
     .carousel-prev,
