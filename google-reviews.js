@@ -65,12 +65,14 @@ function renderReviews(reviews) {
         <div class="testimonial-carousel-container" style="position: relative; max-width: 1200px; margin: 0 auto; padding: 0 50px; overflow: hidden;">
             <div class="testimonial-carousel" style="display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); overflow: visible; will-change: transform;">
     `;
+    
     reviews.forEach((review, index) => {
         const stars = '★'.repeat(Math.floor(review.rating)) + '☆'.repeat(5 - Math.floor(review.rating));
         const reviewDate = review.relative_time_description || 'Recently';
         html += `
             <div class="testimonial-slide" style="
-                min-width: 33.333%; /* 3 cards no desktop */
+                flex: 0 0 calc(33.333% - 20px); /* 3 cards exatos no desktop */
+                width: calc(33.333% - 20px);
                 background: white; 
                 border-radius: 10px; 
                 padding: 20px; 
@@ -83,6 +85,7 @@ function renderReviews(reviews) {
                 height: auto;
                 max-height: none;
                 overflow: visible;
+                box-sizing: border-box;
             ">
                 <div class="quote" style="flex-grow: 1; text-align: center;">
                     <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 20px; margin-bottom: 10px; display: block;"></i>
@@ -757,21 +760,21 @@ function initializeCarousel(totalSlides) {
         console.log('🚫 Pausa ignorada - carrossel contínuo');
     }
     
-    // Event listeners para navegação manual (sem pausar o auto-play)
+    // Event listeners para navegação manual (NUNCA pausar o auto-play)
     prevBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         prevSlide();
-        startProgress(); // Reiniciar progresso imediatamente
-        console.log('🔙 Slide anterior clicado');
+        // NÃO pausar - carrossel continua
+        console.log('🔙 Slide anterior clicado - auto-play continua');
     });
     
     nextBtn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
         nextSlide();
-        startProgress(); // Reiniciar progresso imediatamente
-        console.log('▶️ Próximo slide clicado');
+        // NÃO pausar - carrossel continua
+        console.log('▶️ Próximo slide clicado - auto-play continua');
     });
     
     dots.forEach((dot, index) => {
@@ -779,8 +782,8 @@ function initializeCarousel(totalSlides) {
             e.preventDefault();
             e.stopPropagation();
             goToSlide(index);
-            startProgress(); // Reiniciar progresso imediatamente
-            console.log('🎯 Dot clicado:', index);
+            // NÃO pausar - carrossel continua
+            console.log('🎯 Dot clicado:', index, '- auto-play continua');
         });
     });
     

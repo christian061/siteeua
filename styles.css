@@ -1978,9 +1978,11 @@ a.feature.feature-link > * {
     overflow: hidden;
     border-radius: 12px;
     min-height: 350px; /* Altura para 3 cards */
+    width: 100%;
     max-width: 1200px; /* Largura maior para 3 cards */
     margin: 0 auto;
     padding: 0 50px;
+    box-sizing: border-box;
 }
 
 .testimonial-carousel {
@@ -1992,16 +1994,16 @@ a.feature.feature-link > * {
 }
 
 .testimonial-slide {
-    flex-shrink: 0;
-    backface-visibility: hidden;
-    transform: translateZ(0);
-    min-width: 33.333%; /* 3 cards no desktop */
+    flex: 0 0 calc(33.333% - 20px); /* 3 cards exatos no desktop */
+    width: calc(33.333% - 20px);
     min-height: 320px;
     height: auto;
     overflow: visible; /* Permitir texto completo */
     padding: 20px;
     margin: 0 10px;
     box-sizing: border-box;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 /* Texto completo para desktop - sem cortes */
@@ -2040,9 +2042,12 @@ a.feature.feature-link > * {
     will-change: transform, background-color;
 }
 
-/* Hover desabilitado - carrossel sempre contínuo */
-.testimonial-carousel-container:hover .testimonial-carousel {
-    animation-play-state: running; /* Sempre rodando */
+/* Hover completamente desabilitado - carrossel SEMPRE contínuo */
+.testimonial-carousel-container:hover .testimonial-carousel,
+.testimonial-carousel-container:focus .testimonial-carousel,
+.testimonial-carousel-container:active .testimonial-carousel {
+    animation-play-state: running !important; /* SEMPRE rodando */
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Barra de progresso do carrossel */
