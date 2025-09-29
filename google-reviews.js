@@ -850,6 +850,11 @@ function initializeCarousel(totalSlides) {
         dots: dots.length,
         progressBar: !!progressBar
     });
+    console.log('🔧 Configurações aplicadas:', {
+        movePercentage: isMobile ? 100 : 33.333,
+        cardWidth: isMobile ? '100%' : '33.333%',
+        autoPlayDelay: autoPlayDelay
+    });
     
     // Retornar controles para uso externo se necessário
     return {

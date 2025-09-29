@@ -34,7 +34,10 @@
     }
     
     /* Disable ALL animations and transitions on mobile for better performance */
-    *, *::before, *::after {
+    /* EXCETO carrossel de depoimentos */
+    *:not(.testimonial-carousel):not(.testimonial-slide):not(.carousel-dot):not(.carousel-prev):not(.carousel-next), 
+    *:not(.testimonial-carousel):not(.testimonial-slide):not(.carousel-dot):not(.carousel-prev):not(.carousel-next)::before, 
+    *:not(.testimonial-carousel):not(.testimonial-slide):not(.carousel-dot):not(.carousel-prev):not(.carousel-next)::after {
         animation: none !important;
         transition: none !important;
         transform: none !important;
@@ -43,11 +46,15 @@
     /* Simplify shadows and effects for better performance */
     .service-card,
     .testimonial,
-    .testimonial-slide,
     .modal-content,
     .carousel-container,
     .cities .city {
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    }
+    
+    /* Testimonial slides têm suas próprias configurações */
+    .testimonial-slide {
+        box-shadow: 0 3px 15px rgba(0,0,0,0.1) !important;
     }
     
     /* Disable complex gradients on mobile */
@@ -1900,36 +1907,8 @@ a.feature.feature-link > * {
         padding: 30px 0; /* Reduzir padding da seção */
     }
     
-    .testimonial,
-    .testimonial-slide {
-        min-width: calc(100% - 20px); /* Reduzir largura para cards menores */
-        padding: 15px !important; /* Padding menor */
-        max-height: 280px !important; /* Altura máxima para cards compactos */
-        height: auto !important;
-        overflow: hidden !important; /* Manter overflow hidden para controle */
-        position: relative;
-        min-height: 250px !important; /* Altura mínima menor */
-    }
-    
-    .testimonial-text {
-        max-height: 120px !important; /* Limitar altura do texto */
-        height: auto !important;
-        overflow: hidden !important; /* Esconder texto excedente */
-        position: relative;
-        transition: none;
-    }
-    
-    .testimonial-text p {
-        font-size: 14px !important; /* Fonte menor */
-        line-height: 1.4 !important; /* Espaçamento menor */
-        margin-bottom: 10px !important;
-        display: -webkit-box !important;
-        -webkit-line-clamp: 4 !important; /* Máximo 4 linhas */
-        line-clamp: 4 !important; /* Propriedade padrão para compatibilidade */
-        -webkit-box-orient: vertical !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-    }
+    /* Estilos mobile específicos removidos para evitar conflitos */
+    /* As configurações mobile estão definidas mais abaixo */
     
     .testimonial-fade {
         display: none !important;
@@ -2100,6 +2079,16 @@ a.feature.feature-link > * {
         margin: 0 !important; /* Sem margem no mobile */
     }
     
+    /* Garantir que o carrossel funcione no mobile */
+    .testimonial-carousel {
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        will-change: transform !important;
+    }
+    
+    .carousel-dot {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    
     .carousel-prev,
     .carousel-next {
         width: 40px !important;
@@ -2108,6 +2097,7 @@ a.feature.feature-link > * {
         z-index: 1000 !important;
         pointer-events: auto !important;
         touch-action: manipulation !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
     
     .carousel-prev {
