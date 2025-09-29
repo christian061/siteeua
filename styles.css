@@ -1998,8 +1998,10 @@ a.feature.feature-link > * {
     position: relative;
     overflow: hidden;
     border-radius: 12px;
-    min-height: 320px; /* Altura reduzida para combinar com cards menores */
-    max-height: 350px; /* Limitar altura máxima */
+    min-height: 350px; /* Altura para 3 cards */
+    max-width: 1200px; /* Largura maior para 3 cards */
+    margin: 0 auto;
+    padding: 0 50px;
 }
 
 .testimonial-carousel {
@@ -2014,32 +2016,32 @@ a.feature.feature-link > * {
     flex-shrink: 0;
     backface-visibility: hidden;
     transform: translateZ(0);
-    min-height: 280px; /* Mesmo tamanho do mobile */
-    max-height: 320px; /* Limitar altura como no mobile */
+    min-width: 33.333%; /* 3 cards no desktop */
+    min-height: 320px;
     height: auto;
-    overflow: hidden; /* Mesmo comportamento do mobile */
-    padding: 20px; /* Padding consistente */
+    overflow: visible; /* Permitir texto completo */
+    padding: 20px;
+    margin: 0 10px;
+    box-sizing: border-box;
 }
 
-/* Texto compacto para desktop (igual mobile) */
+/* Texto completo para desktop - sem cortes */
 .testimonial-text {
-    max-height: 140px !important; /* Limitar altura do texto */
-    overflow: hidden !important;
+    max-height: none !important; /* Sem limitação de altura */
+    overflow: visible !important;
     height: auto !important;
 }
 
 .testimonial-text p {
-    font-size: 15px !important;
-    line-height: 1.5 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 5 !important; /* Máximo 5 linhas no desktop */
-    line-clamp: 5 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
     white-space: normal !important;
     height: auto !important;
     max-height: none !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 /* Indicadores do carrossel com animação suave */
@@ -2059,9 +2061,9 @@ a.feature.feature-link > * {
     will-change: transform, background-color;
 }
 
-/* Pausa suave do carrossel ao passar o mouse */
+/* Hover desabilitado - carrossel sempre contínuo */
 .testimonial-carousel-container:hover .testimonial-carousel {
-    animation-play-state: paused;
+    animation-play-state: running; /* Sempre rodando */
 }
 
 /* Barra de progresso do carrossel */
@@ -2089,11 +2091,13 @@ a.feature.feature-link > * {
     }
     
     .testimonial-slide {
+        min-width: 100% !important; /* 1 card por vez no mobile */
         min-height: 250px !important; /* Cards menores no mobile */
         max-height: 280px !important;
         height: auto !important;
         overflow: hidden !important; /* Esconder overflow para manter tamanho */
         padding: 15px !important; /* Padding menor */
+        margin: 0 !important; /* Sem margem no mobile */
     }
     
     .carousel-prev,

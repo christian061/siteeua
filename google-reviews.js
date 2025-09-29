@@ -62,34 +62,33 @@ function renderReviews(reviews) {
     
     // Create carousel HTML
     let html = `
-        <div class="testimonial-carousel-container" style="position: relative; max-width: 700px; margin: 0 auto; padding: 0 50px; overflow: hidden;">
+        <div class="testimonial-carousel-container" style="position: relative; max-width: 1200px; margin: 0 auto; padding: 0 50px; overflow: hidden;">
             <div class="testimonial-carousel" style="display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); overflow: visible; will-change: transform;">
     `;
-    
     reviews.forEach((review, index) => {
         const stars = '★'.repeat(Math.floor(review.rating)) + '☆'.repeat(5 - Math.floor(review.rating));
         const reviewDate = review.relative_time_description || 'Recently';
         html += `
             <div class="testimonial-slide" style="
-                min-width: 100%;
+                min-width: 33.333%; /* 3 cards no desktop */
                 background: white; 
                 border-radius: 10px; 
                 padding: 20px; 
-                margin: 0;
+                margin: 0 10px;
                 box-shadow: 0 3px 15px rgba(0,0,0,0.1);
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 280px;
+                min-height: 300px;
                 height: auto;
-                max-height: 320px;
+                max-height: none;
                 overflow: visible;
             ">
                 <div class="quote" style="flex-grow: 1; text-align: center;">
                     <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 20px; margin-bottom: 10px; display: block;"></i>
                     <div class="testimonial-text">
-                        <p style="font-size: 14px; line-height: 1.5; color: #555; margin-bottom: 15px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; text-align: left; padding: 0 5px; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">
-                            "${review.text.replace(/"/g, '&quot;').replace(/\n/g, ' ')}"
+                        <p style="font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 15px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; text-align: left; padding: 0 5px;">
+                            "${review.text.replace(/"/g, '&quot;').replace(/\n/g, '<br>')}"
                         </p>
                     </div>
                 </div>
@@ -654,7 +653,10 @@ function initializeCarousel(totalSlides) {
     const progressUpdateInterval = 50; // Atualizar progresso a cada 50ms
     
     function updateCarousel(smooth = true) {
-        const translateX = -currentSlide * 100;
+        // Para desktop com 3 cards, mover 33.333% por vez
+        // Para mobile com 1 card, mover 100% por vez
+        const movePercentage = isMobile ? 100 : 33.333;
+        const translateX = -currentSlide * movePercentage;
         
         if (smooth) {
             carousel.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -749,12 +751,10 @@ function initializeCarousel(totalSlides) {
         stopProgress();
     }
     
-    // Função para pausar temporariamente
-    function pauseAutoPlay(duration = 8000) {
-        isUserInteracting = true;
-        setTimeout(() => {
-            isUserInteracting = false;
-        }, duration);
+    // Função de pausa removida - carrossel sempre contínuo
+    function pauseAutoPlay(duration = 0) {
+        // Não fazer nada - carrossel sempre contínuo
+        console.log('🚫 Pausa ignorada - carrossel contínuo');
     }
     
     // Event listeners para navegação manual (sem pausar o auto-play)
