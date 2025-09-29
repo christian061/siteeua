@@ -647,7 +647,7 @@ function initializeCarousel(totalSlides) {
     if (!carousel || !prevBtn || !nextBtn) return;
     
     // Configurações do carrossel contínuo - MOBILE OTIMIZADO
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     const autoPlayDelay = isMobile ? 3000 : 3500; // 3 segundos no mobile, 3.5 no desktop
     const pauseOnHover = false; // NÃO pausar ao passar o mouse
     const pauseOnInteraction = false; // NÃO pausar ao interagir
@@ -758,20 +758,29 @@ function initializeCarousel(totalSlides) {
     }
     
     // Event listeners para navegação manual (sem pausar o auto-play)
-    prevBtn.addEventListener('click', () => {
+    prevBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         prevSlide();
         startProgress(); // Reiniciar progresso imediatamente
+        console.log('🔙 Slide anterior clicado');
     });
     
-    nextBtn.addEventListener('click', () => {
+    nextBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         nextSlide();
         startProgress(); // Reiniciar progresso imediatamente
+        console.log('▶️ Próximo slide clicado');
     });
     
     dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
+        dot.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             goToSlide(index);
             startProgress(); // Reiniciar progresso imediatamente
+            console.log('🎯 Dot clicado:', index);
         });
     });
     
@@ -790,6 +799,33 @@ function initializeCarousel(totalSlides) {
         }
     });
     
+    // Navegação por toque para mobile
+    if (isMobile && carouselContainer) {
+        let startX = 0;
+        let endX = 0;
+        
+        carouselContainer.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        }, { passive: true });
+        
+        carouselContainer.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].clientX;
+            const diffX = startX - endX;
+            
+            if (Math.abs(diffX) > 50) { // Mínimo 50px de swipe
+                if (diffX > 0) {
+                    nextSlide(); // Swipe left = próximo
+                    startProgress();
+                    console.log('👆 Swipe left - próximo slide');
+                } else {
+                    prevSlide(); // Swipe right = anterior
+                    startProgress();
+                    console.log('👆 Swipe right - slide anterior');
+                }
+            }
+        }, { passive: true });
+    }
+    
     // Pausar quando a aba não está visível
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
@@ -805,7 +841,15 @@ function initializeCarousel(totalSlides) {
     
     console.log('🎉 Carrossel CONTÍNUO inicializado com', totalSlides, 'slides');
     console.log('⏱️ Auto-play:', autoPlayDelay / 1000, 'segundos por slide');
+    console.log('📱 Mobile:', isMobile);
     console.log('🚫 Pausas desabilitadas - carrossel verdadeiramente contínuo');
+    console.log('🎛️ Controles encontrados:', {
+        carousel: !!carousel,
+        prevBtn: !!prevBtn,
+        nextBtn: !!nextBtn,
+        dots: dots.length,
+        progressBar: !!progressBar
+    });
     
     // Retornar controles para uso externo se necessário
     return {
