@@ -1,6 +1,9 @@
 // Main JavaScript file for Magic CleanDom
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Mobile performance optimization - detect mobile devices
+    const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
     // Garantir que o modal está fechado ao carregar a página
     const modal = document.getElementById('certificateModal');
     if (modal) {
@@ -15,10 +18,66 @@ document.addEventListener('DOMContentLoaded', function() {
             // Optionally add a placeholder or hide the image
             this.style.display = 'none';
         });
+        
+        // Optimize image loading for mobile
+        if (isMobile) {
+            img.loading = 'lazy';
+            img.decoding = 'async';
+        }
     });
     
-    // Hero cleaning effect
-    setupHeroCleaningEffect();
+    // Hero cleaning effect - only on desktop for performance
+    if (!isMobile) {
+        setupHeroCleaningEffect();
+    } else {
+        // Simplified mobile hero
+        const hero = document.querySelector('.hero');
+        if (hero) {
+            hero.style.cursor = 'default';
+            // Remove any complex effects
+            hero.classList.remove('cleaning-active');
+        }
+    }
+    
+    // Mobile Service Areas optimization
+    if (isMobile) {
+        const serviceArea = document.querySelector('.service-area');
+        const cities = document.querySelectorAll('.cities .city');
+        
+        if (serviceArea) {
+            // Disable complex effects on mobile
+            serviceArea.style.willChange = 'auto';
+            serviceArea.style.transform = 'none';
+        }
+        
+        cities.forEach(city => {
+            // Disable hover effects and complex animations on mobile
+            city.style.willChange = 'auto';
+            city.style.transform = 'none';
+            city.style.transition = 'none';
+            
+            // Remove any existing event listeners that might cause performance issues
+            const cityBg = city.querySelector('.city-bg');
+            if (cityBg) {
+                cityBg.style.willChange = 'auto';
+                cityBg.style.transform = 'none';
+                cityBg.style.transition = 'none';
+                cityBg.style.filter = 'none';
+            }
+            
+            // Simplify city name display for mobile
+            const cityName = city.querySelector('.city-name');
+            if (!cityName) {
+                const name = city.getAttribute('data-city') || city.getAttribute('aria-label');
+                if (name) {
+                    const nameElement = document.createElement('div');
+                    nameElement.className = 'city-name';
+                    nameElement.textContent = name;
+                    city.appendChild(nameElement);
+                }
+            }
+        });
+    }
     
     // Modal do Vídeo de Experiência
     function setupExperienceVideo() {

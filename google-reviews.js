@@ -62,8 +62,8 @@ function renderReviews(reviews) {
     
     // Create carousel HTML
     let html = `
-        <div class="testimonial-carousel-container" style="position: relative; max-width: 700px; margin: 0 auto; padding: 0 50px;">
-            <div class="testimonial-carousel" style="display: flex; transition: transform 0.5s ease-in-out; overflow: visible;">
+        <div class="testimonial-carousel-container" style="position: relative; max-width: 700px; margin: 0 auto; padding: 0 50px; overflow: hidden;">
+            <div class="testimonial-carousel" style="display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); overflow: visible; will-change: transform;">
     `;
     
     reviews.forEach((review, index) => {
@@ -75,25 +75,23 @@ function renderReviews(reviews) {
                 min-width: 100%;
                 background: white; 
                 border-radius: 10px; 
-                padding: 25px; 
                 margin: 0;
                 box-shadow: 0 3px 15px rgba(0,0,0,0.1);
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 300px;
+                min-height: 350px;
+                height: auto;
                 max-height: none;
                 overflow: visible;
             ">
                 <div class="quote" style="flex-grow: 1; text-align: center;">
                     <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 24px; margin-bottom: 15px; display: block;"></i>
                     <div class="testimonial-text">
-                        <p style="font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 20px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word;">
-                            "${review.text.replace(/"/g, '&quot;')}"
+                        <p style="font-size: 15px; line-height: 1.7; color: #555; margin-bottom: 20px; font-style: italic; max-width: 100%; word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap; text-align: left; padding: 0 10px;">
+                            "${review.text.replace(/"/g, '&quot;').replace(/\n/g, '<br>')}"
                         </p>
-                        <div class="testimonial-fade"></div>
                     </div>
-                    <button class="read-more-btn" style="display: none;">Ver mais</button>
                 </div>
                 <div class="client" style="
                     display: flex; 
@@ -171,11 +169,29 @@ function renderReviews(reviews) {
                 <i class="fas fa-chevron-right"></i>
             </button>
             
+            <!-- Progress Bar -->
+            <div class="carousel-progress" style="
+                width: 100%;
+                height: 3px;
+                background: rgba(76, 175, 80, 0.2);
+                border-radius: 2px;
+                margin-top: 15px;
+                overflow: hidden;
+            ">
+                <div class="carousel-progress-bar" style="
+                    height: 100%;
+                    background: #4CAF50;
+                    width: 0%;
+                    border-radius: 2px;
+                    transition: width 0.1s linear;
+                "></div>
+            </div>
+            
             <!-- Dots Indicator -->
             <div class="carousel-dots" style="
                 display: flex;
                 justify-content: center;
-                margin-top: 20px;
+                margin-top: 15px;
                 gap: 8px;
             ">
     `;
@@ -183,14 +199,15 @@ function renderReviews(reviews) {
     reviews.forEach((_, index) => {
         html += `
             <button class="carousel-dot ${index === 0 ? 'active' : ''}" data-slide="${index}" style="
-                width: 8px;
-                height: 8px;
+                width: 10px;
+                height: 10px;
                 border-radius: 50%;
                 border: none;
                 background: ${index === 0 ? '#4CAF50' : '#ddd'};
                 cursor: pointer;
-                transition: all 0.3s ease;
-            " onmouseover="if(!this.classList.contains('active')) this.style.background='#bbb'" onmouseout="if(!this.classList.contains('active')) this.style.background='#ddd'"></button>
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transform: ${index === 0 ? 'scale(1.2)' : 'scale(1)'};
+            " onmouseover="if(!this.classList.contains('active')) { this.style.background='#bbb'; this.style.transform='scale(1.1)'; }" onmouseout="if(!this.classList.contains('active')) { this.style.background='#ddd'; this.style.transform='scale(1)'; }"></button>
         `;
     });
     
@@ -616,120 +633,191 @@ function loadSampleReviews() {
 // Function to initialize carousel functionality
 function initializeCarousel(totalSlides) {
     let currentSlide = 0;
+    let autoPlayInterval;
+    let progressInterval;
+    let isUserInteracting = false;
+    let progressValue = 0;
     const carousel = document.querySelector('.testimonial-carousel');
     const prevBtn = document.querySelector('.carousel-prev');
     const nextBtn = document.querySelector('.carousel-next');
     const dots = document.querySelectorAll('.carousel-dot');
+    const carouselContainer = document.querySelector('.testimonial-carousel-container');
+    const progressBar = document.querySelector('.carousel-progress-bar');
     
     if (!carousel || !prevBtn || !nextBtn) return;
     
-    function updateCarousel() {
+    // Configurações do carrossel contínuo
+    const autoPlayDelay = 3500; // 3.5 segundos entre slides
+    const pauseOnHover = false; // NÃO pausar ao passar o mouse
+    const pauseOnInteraction = false; // NÃO pausar ao interagir
+    const progressUpdateInterval = 50; // Atualizar progresso a cada 50ms
+    
+    function updateCarousel(smooth = true) {
         const translateX = -currentSlide * 100;
+        
+        if (smooth) {
+            carousel.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        } else {
+            carousel.style.transition = 'none';
+        }
+        
         carousel.style.transform = `translateX(${translateX}%)`;
         
-        // Update dots
+        // Update dots with smooth animation
         dots.forEach((dot, index) => {
             if (index === currentSlide) {
                 dot.classList.add('active');
                 dot.style.background = '#4CAF50';
+                dot.style.transform = 'scale(1.2)';
             } else {
                 dot.classList.remove('active');
                 dot.style.background = '#ddd';
+                dot.style.transform = 'scale(1)';
             }
         });
     }
     
-    function nextSlide() {
+    function nextSlide(smooth = true) {
         currentSlide = (currentSlide + 1) % totalSlides;
-        updateCarousel();
+        updateCarousel(smooth);
     }
     
-    function prevSlide() {
+    function prevSlide(smooth = true) {
         currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-        updateCarousel();
+        updateCarousel(smooth);
     }
     
-    function goToSlide(slideIndex) {
+    function goToSlide(slideIndex, smooth = true) {
         currentSlide = slideIndex;
-        updateCarousel();
+        updateCarousel(smooth);
     }
     
-    // Event listeners
-    prevBtn.addEventListener('click', prevSlide);
-    nextBtn.addEventListener('click', nextSlide);
+    // Função para atualizar a barra de progresso
+    function updateProgressBar() {
+        if (progressBar) {
+            progressBar.style.width = `${progressValue}%`;
+        }
+    }
+    
+    // Função para resetar o progresso
+    function resetProgress() {
+        progressValue = 0;
+        updateProgressBar();
+    }
+    
+    // Função para iniciar o progresso
+    function startProgress() {
+        if (progressInterval) clearInterval(progressInterval);
+        resetProgress();
+        
+        progressInterval = setInterval(() => {
+            progressValue += (100 / (autoPlayDelay / progressUpdateInterval));
+            if (progressValue >= 100) {
+                progressValue = 100;
+            }
+            updateProgressBar();
+        }, progressUpdateInterval);
+    }
+    
+    // Função para parar o progresso
+    function stopProgress() {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
+    
+    // Função para iniciar o auto-play
+    function startAutoPlay() {
+        if (autoPlayInterval) clearInterval(autoPlayInterval);
+        startProgress(); // Iniciar barra de progresso
+        
+        autoPlayInterval = setInterval(() => {
+            nextSlide();
+            startProgress(); // Reiniciar progresso para o próximo slide
+        }, autoPlayDelay);
+        console.log('🎠 Auto-play CONTÍNUO iniciado - mudança a cada', autoPlayDelay / 1000, 'segundos');
+    }
+    
+    // Função para parar o auto-play
+    function stopAutoPlay() {
+        if (autoPlayInterval) {
+            clearInterval(autoPlayInterval);
+            autoPlayInterval = null;
+        }
+        stopProgress();
+    }
+    
+    // Função para pausar temporariamente
+    function pauseAutoPlay(duration = 8000) {
+        isUserInteracting = true;
+        setTimeout(() => {
+            isUserInteracting = false;
+        }, duration);
+    }
+    
+    // Event listeners para navegação manual (sem pausar o auto-play)
+    prevBtn.addEventListener('click', () => {
+        prevSlide();
+        startProgress(); // Reiniciar progresso imediatamente
+    });
+    
+    nextBtn.addEventListener('click', () => {
+        nextSlide();
+        startProgress(); // Reiniciar progresso imediatamente
+    });
     
     dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => goToSlide(index));
+        dot.addEventListener('click', () => {
+            goToSlide(index);
+            startProgress(); // Reiniciar progresso imediatamente
+        });
     });
     
-    // Auto-play carousel
-    setInterval(nextSlide, 5000);
+    // Hover desabilitado para carrossel verdadeiramente contínuo
+    // (sem pausas ao passar o mouse)
     
-    // Keyboard navigation
+    // Navegação por teclado (sem pausar)
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') prevSlide();
-        if (e.key === 'ArrowRight') nextSlide();
+        if (e.key === 'ArrowLeft') {
+            prevSlide();
+            startProgress(); // Reiniciar progresso imediatamente
+        }
+        if (e.key === 'ArrowRight') {
+            nextSlide();
+            startProgress(); // Reiniciar progresso imediatamente
+        }
     });
     
-    console.log('Carousel initialized with', totalSlides, 'slides');
+    // Pausar quando a aba não está visível
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            stopAutoPlay();
+        } else {
+            startAutoPlay();
+        }
+    });
     
-    // Initialize read more functionality for mobile
-    initializeReadMore();
+    // Inicializar o carrossel
+    updateCarousel(false); // Primeira atualização sem animação
+    startAutoPlay(); // Iniciar auto-play
+    
+    console.log('🎉 Carrossel CONTÍNUO inicializado com', totalSlides, 'slides');
+    console.log('⏱️ Auto-play:', autoPlayDelay / 1000, 'segundos por slide');
+    console.log('🚫 Pausas desabilitadas - carrossel verdadeiramente contínuo');
+    
+    // Retornar controles para uso externo se necessário
+    return {
+        next: () => { nextSlide(); startProgress(); },
+        prev: () => { prevSlide(); startProgress(); },
+        goTo: (index) => { goToSlide(index); startProgress(); },
+        start: startAutoPlay,
+        stop: stopAutoPlay,
+        resetProgress: resetProgress
+    };
 }
 
-// Function to initialize read more functionality
-function initializeReadMore() {
-    // Only apply on mobile devices
-    function checkAndApplyMobile() {
-        const isMobile = window.innerWidth <= 768;
-        const testimonials = document.querySelectorAll('.testimonial-slide');
-        
-        testimonials.forEach(testimonial => {
-            const textContainer = testimonial.querySelector('.testimonial-text');
-            const readMoreBtn = testimonial.querySelector('.read-more-btn');
-            const fadeElement = testimonial.querySelector('.testimonial-fade');
-            
-            if (!textContainer || !readMoreBtn) return;
-            
-            if (isMobile) {
-                const textElement = textContainer.querySelector('p');
-                const textHeight = textElement.scrollHeight;
-                const containerHeight = 120; // Same as CSS max-height
-                
-                if (textHeight > containerHeight) {
-                    readMoreBtn.style.display = 'inline-block';
-                    if (fadeElement) fadeElement.style.display = 'block';
-                    
-                    readMoreBtn.onclick = function() {
-                        const isExpanded = testimonial.classList.contains('expanded');
-                        
-                        if (isExpanded) {
-                            testimonial.classList.remove('expanded');
-                            readMoreBtn.textContent = 'Ver mais';
-                            if (fadeElement) fadeElement.style.display = 'block';
-                        } else {
-                            testimonial.classList.add('expanded');
-                            readMoreBtn.textContent = 'Ver menos';
-                            if (fadeElement) fadeElement.style.display = 'none';
-                        }
-                    };
-                } else {
-                    readMoreBtn.style.display = 'none';
-                    if (fadeElement) fadeElement.style.display = 'none';
-                }
-            } else {
-                // Desktop - always show full text
-                testimonial.classList.remove('expanded');
-                readMoreBtn.style.display = 'none';
-                if (fadeElement) fadeElement.style.display = 'none';
-            }
-        });
-    }
-    
-    // Apply on load and resize
-    checkAndApplyMobile();
-    window.addEventListener('resize', checkAndApplyMobile);
-}
+// Função removida - não é mais necessária pois os textos não são mais cortados
 
 // Inicializar quando o DOM estiver pronto
 document.addEventListener('DOMContentLoaded', async function() {
