@@ -58,20 +58,37 @@
    SERVICE_ID: "service_a436nr6" // Cole o ID correto aqui
    ```
 
-#### Erro 4: Email vai para SPAM
+#### Erro 4: "550-5.7.26 Your email has been blocked because the sender is unauthenticated"
+**Causa**: SPF/DKIM não configurados - Gmail bloqueia emails não autenticados
+
+**Este é um erro CRÍTICO de autenticação!**
+
+**Solução Rápida (RECOMENDADA):**
+1. Acesse [EmailJS Dashboard](https://dashboard.emailjs.com/)
+2. Vá em "Email Services"
+3. Remova o serviço atual
+4. Adicione novo serviço **Gmail**
+5. Use **OAuth2** para conectar com `info@magiccleandom.com`
+6. Copie o novo Service ID
+7. Atualize `SERVICE_ID` em `emailjs-config.js`
+8. Teste novamente
+
+**Por que isso funciona?**
+- OAuth2 usa autenticação do Google diretamente
+- Não precisa configurar SPF/DKIM manualmente
+- Gmail reconhece o email como legítimo
+
+**📖 Leia o guia completo:** `FIX_AUTHENTICATION.md`
+
+#### Erro 5: Email vai para SPAM
 **Causa**: Configuração de SPF/DKIM ou conteúdo suspeito
 
 **Solução**:
 1. Peça ao cliente verificar a pasta de SPAM/Lixo Eletrônico
-2. Configure SPF e DKIM no Google Workspace:
-   - Acesse Google Admin Console
-   - Vá em "Apps" > "Google Workspace" > "Gmail"
-   - Configure "Authenticate email" (SPF, DKIM, DMARC)
-3. No EmailJS, certifique-se que:
-   - O "From Email" é `info@magiccleandom.com`
-   - O "From Name" é `Magic CleanDom`
+2. Se usar OAuth2, o problema de SPAM é minimizado
+3. Configure SPF e DKIM no Google Workspace (veja `FIX_AUTHENTICATION.md`)
 
-#### Erro 5: "Invalid public key"
+#### Erro 6: "Invalid public key"
 **Causa**: A chave pública está incorreta
 
 **Solução**:
