@@ -51,9 +51,9 @@ async function sendContactForm(data) {
         // Resposta automática para o cliente
         try {
             const customerParams = {
-                name: data.name,        // {{name}} no template
-                email: data.email,      // {{email}} no template (To Email)
-                message: data.message   // {{message}} no template
+                name: data.name,           // {{name}} no template HTML
+                to_email: data.email,      // Email do cliente (destinatário) - usado pelo EmailJS para enviar
+                message: data.message      // {{message}} no template HTML
             };
 
             console.log("📤 Tentando resposta automática com params:", customerParams);
@@ -66,7 +66,8 @@ async function sendContactForm(data) {
             );
             console.log("✅ Resposta automática enviada com sucesso!");
         } catch (autoReplyError) {
-            console.warn("⚠️ Erro na resposta automática (não crítico):", autoReplyError.text);
+            console.warn("⚠️ Erro na resposta automática (não crítico):", autoReplyError);
+            console.error("Detalhes do erro:", autoReplyError.text || autoReplyError.message);
             console.log("✅ Email principal foi enviado com sucesso mesmo assim!");
         }
 

@@ -22,10 +22,12 @@ Este guia explica como configurar o envio de emails através do formulário de c
 6. **Autenticação OAuth2**: Siga o processo de autorização
 7. Anote o **Service ID** gerado
 
-### Passo 3: Criar Template de Email
+### Passo 3: Criar Template de Email (RECEBER mensagens - Empresa)
 1. Vá em **Email Templates**
 2. Clique em **Create New Template**
 3. Configure o template com o seguinte conteúdo:
+
+**Nome do Template:** "Notificação de Contato - Empresa"
 
 **Assunto:**
 ```
@@ -38,13 +40,15 @@ Olá,
 
 Você recebeu uma nova mensagem de contato através do site Magic CleanDom:
 
-Nome: {{from_name}}
-Email: {{from_email}}
+Nome: {{name}}
+Email: {{user_email}}
 Telefone: {{phone}}
 Serviço: {{service}}
 
 Mensagem:
 {{message}}
+
+Data: {{data}}
 
 ---
 Esta mensagem foi enviada automaticamente através do formulário de contato do site.
@@ -52,35 +56,133 @@ Para responder, utilize o email: {{reply_to}}
 ```
 
 4. **Configurações importantes do template:**
-   - **To Email**: {{to_email}} (será preenchido automaticamente)
+   - **To Email**: info@magiccleandom.com (email fixo da empresa)
    - **From Name**: Magic CleanDom Contact Form
    - **From Email**: info@magiccleandom.com
    - **Reply To**: {{reply_to}} (email do cliente)
-5. Salve o template e anote o **Template ID**
+5. Salve o template e anote o **Template ID** (ex: template_h90o89q)
 
-### Passo 4: Obter Chave Pública
+### Passo 4: Criar Template de Resposta Automática (ENVIAR ao cliente)
+1. Vá em **Email Templates**
+2. Clique em **Create New Template**
+3. Configure o segundo template com o seguinte conteúdo:
+
+**Nome do Template:** "Resposta Automática - Cliente"
+
+**Assunto:**
+```
+Thank you for contacting Magic CleanDom! 🧼✨
+```
+
+**Conteúdo do Email (HTML):**
+```html
+<div style="font-family: system-ui, sans-serif, Arial; font-size: 16px; max-width: 600px;">
+  <a style="text-decoration: none; outline: none;" href="https://magiccleandom.com" target="_blank" rel="noopener">
+    <img style="height: 40px; vertical-align: middle;" src="https://magiccleandom.com/assets/images/logo.png" alt="Magic CleanDom logo">
+  </a>
+
+  <p style="padding-top: 16px; border-top: 1px solid #eaeaea;">Hello {{name}},</p>
+
+  <p>👋 Thank you for reaching out to <strong>Magic CleanDom</strong>!</p>
+
+  <p>
+    We've received your message and one of our team members will get back to you shortly.
+  </p>
+
+  <p>
+    Here's a copy of the message you sent us:
+  </p>
+
+  <blockquote style="border-left: 3px solid #eaeaea; margin: 16px 0; padding-left: 12px; color: #555;">
+    {{message}}
+  </blockquote>
+
+  <p>
+    If your inquiry is urgent, feel free to contact us directly:
+  </p>
+
+  <p>📞 <a title="Call us" href="tel:+13522226476">(352) 222-6476</a></p>
+
+  <p>
+    Meanwhile, feel free to explore our services on our website:<br>
+    🌐 <a href="https://www.magiccleandom.com" target="_blank" rel="noopener">www.magiccleandom.com</a>
+  </p>
+
+  <p style="margin-top: 20px;">
+    Thank you for trusting us!<br>
+    Best regards,<br>
+    <strong>Magic CleanDom Team</strong>
+  </p>
+</div>
+```
+
+**Variáveis usadas no template:**
+- `{{name}}` - Nome do cliente
+- `{{message}}` - Mensagem enviada pelo cliente
+
+4. **Configurações importantes do template de resposta automática:**
+   - **To Email**: {{to_email}} (email do cliente - variável dinâmica) ← **CRÍTICO!**
+   - **From Name**: Magic CleanDom
+   - **From Email**: info@magiccleandom.com
+   - **Reply To**: info@magiccleandom.com
+5. Salve o template e anote o **Template ID** (ex: template_48tdlu9)
+
+### Passo 5: Obter Chave Pública
 1. Vá em **Account** > **API Keys**
 2. Copie sua **Public Key**
 
-### Passo 5: Configurar o Site
+### Passo 6: Configurar o Site
 1. Abra o arquivo `emailjs-config.js`
 2. Substitua os valores pelos seus dados reais:
 
 ```javascript
 const EMAILJS_CONFIG = {
-    PUBLIC_KEY: "w9UgEZ3aGXFWo2lNr",
-    SERVICE_ID: "service_a436nr6", 
-    TEMPLATE_ID: "template_tfm6nu8"
+    PUBLIC_KEY: "w9UgEZ3aGXFWo2lNr",       // sua chave pública
+    SERVICE_ID: "service_a436nr6",          // seu serviço (Gmail)
+    TEMPLATE_ID: "template_h90o89q",        // template para RECEBER mensagens (empresa)
+    CUSTOMER_TEMPLATE_ID: "template_48tdlu9" // template para RESPOSTA automática (cliente)
 };
 ```
 
 ## 🧪 Testando
 
+### Teste Completo do Sistema de Email Duplo
+
 1. Abra o site no navegador
 2. Vá até a seção "Get In Touch"
-3. Preencha o formulário
+3. Preencha o formulário com **seu email pessoal** para testar
 4. Clique em "Send Message"
-5. Verifique se o email chegou em info@magiccleandom.com
+5. Verifique:
+   - ✅ **Email 1**: A empresa (info@magiccleandom.com) recebeu a mensagem?
+   - ✅ **Email 2**: Você (cliente) recebeu a resposta automática no seu email?
+6. Verifique o console do navegador (F12) para logs de debug
+
+### Checklist de Configuração do Template de Resposta Automática
+
+**⚠️ CRÍTICO**: Verifique no painel do EmailJS se o template de resposta automática está configurado corretamente:
+
+#### No EmailJS Dashboard → Email Templates → Template de Resposta:
+
+1. ✅ **Settings Tab** (clique no ícone ⚙️):
+   - **To Email**: `{{to_email}}` ← **ESTE É O MAIS IMPORTANTE!**
+   - **From Name**: `Magic CleanDom`
+   - **From Email**: `info@magiccleandom.com`
+   - **Reply To**: `info@magiccleandom.com`
+
+2. ✅ **Content Tab** (HTML):
+   - Deve conter as variáveis: `{{name}}` e `{{message}}`
+   - Template HTML já está configurado com o design da Magic CleanDom
+
+3. ✅ **Template ID**: 
+   - Copie o ID e confirme que está correto em `emailjs-config.js`
+   - Exemplo: `CUSTOMER_TEMPLATE_ID: "template_48tdlu9"`
+
+**Se o cliente NÃO recebe a resposta automática, verifique:**
+- ❌ O campo **"To Email"** do template não está como `{{to_email}}`
+- ❌ O **Template ID** está incorreto no `emailjs-config.js`
+- ❌ O **Service ID** está incorreto
+- ❌ O email está indo para **SPAM/Lixo Eletrônico**
+- ❌ O serviço Gmail não está **autorizado** no EmailJS
 
 ## 📝 Funcionalidades
 
