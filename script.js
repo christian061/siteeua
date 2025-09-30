@@ -837,42 +837,37 @@ if (contactForm) {
             return;
         }
 
-        // 1. Enviar dados para ADMIN (info@magiccleandom.com)
-        const adminEmailPromise = emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.TEMPLATE_ID, templateParams);
-        
-        // 2. Enviar confirmação automática para CLIENTE
-        const customerEmailPromise = EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID 
-            ? emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID, templateParams)
-            : Promise.resolve();
-
-        // Aguardar ambos os emails
-        Promise.all([adminEmailPromise, customerEmailPromise])
-            .then(() => {
-                showFormMessage('Thank you for your message! We will get back to you soon.', 'success');
-                this.reset();
+        // Usar a nova função sendContactForm do emailjs-config.js
+        if (typeof sendContactForm === 'function') {
+            sendContactForm({
+                name: name,
+                email: email,
+                phone: phone,
+                service: service,
+                message: message
+            })
+            .then((success) => {
+                if (success) {
+                    showFormMessage('Thank you for your message! We will get back to you soon.', 'success');
+                    this.reset();
+                } else {
+                    showFormMessage('There was an error sending your message. Please try again later.', 'error');
+                }
             })
             .catch((error) => {
                 console.error('EmailJS Error:', error);
-                let errorMessage = 'There was an error sending your message. Please try again later.';
-                
-                // Mensagens de erro mais específicas
-                if (error.status === 400) {
-                    errorMessage = 'Invalid form data. Please check your information.';
-                } else if (error.status === 401) {
-                    errorMessage = 'Email service authentication failed.';
-                } else if (error.status === 403) {
-                    errorMessage = 'Email service access denied.';
-                } else if (error.status === 404) {
-                    errorMessage = 'Email template not found.';
-                }
-                
-                showFormMessage(errorMessage, 'error');
+                showFormMessage('There was an error sending your message. Please try again later.', 'error');
             })
             .finally(() => {
                 // Reset button state
                 submitBtn.textContent = originalText;
                 submitBtn.disabled = false;
             });
+        } else {
+            showFormMessage('Email service is not available. Please try again later.', 'error');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
         
         // Also save to Firebase if available (backup)
         if (window.db) {

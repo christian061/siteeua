@@ -38,9 +38,9 @@ async function sendContactForm(data) {
             EMAILJS_CONFIG.SERVICE_ID,
             EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID,
             {
-              to_name: data.name,
-              to_email: data.email,
-              message: data.message
+              name: data.name,        // {{name}} no template
+              to_email: data.email,   // Para onde enviar
+              message: data.message   // {{message}} no template
             }
           );
         console.log("📨 Resposta automática enviada para o cliente");
@@ -53,26 +53,8 @@ async function sendContactForm(data) {
     }
 }
 
-// Exemplo de uso (simulando envio do formulário)
-document.getElementById("contact-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const formData = {
-        name: document.getElementById("name").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        service: document.getElementById("service").value,
-        message: document.getElementById("message").value
-    };
-
-    const success = await sendContactForm(formData);
-
-    if (success) {
-        alert("✅ Sua mensagem foi enviada com sucesso!");
-    } else {
-        alert("❌ Ocorreu um erro ao enviar sua mensagem. Tente novamente.");
-    }
-});
+// A função sendContactForm será chamada pelo script.js
+// Não precisa de event listener aqui para evitar conflitos
 
 // Inicializar quando a página carregar
 window.addEventListener("load", initEmailJS);
