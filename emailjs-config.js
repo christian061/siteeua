@@ -24,12 +24,11 @@ async function sendContactForm(data) {
             EMAILJS_CONFIG.SERVICE_ID,
             EMAILJS_CONFIG.TEMPLATE_ID,
             {
-                name: data.name,
-                user_email: data.email,
-                phone: data.phone,
-                service: data.service,
-                message: data.message,
-                date: new Date().toLocaleString()
+              from_name: data.name,
+              reply_to: data.email,
+              phone: data.phone,
+              service: data.service,
+              message: data.message,
             }
         );
         console.log("📩 Email enviado para empresa");
@@ -39,11 +38,11 @@ async function sendContactForm(data) {
             EMAILJS_CONFIG.SERVICE_ID,
             EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID,
             {
-                name: data.name,
-                user_email: data.email,
-                message: data.message
+              to_name: data.name,
+              to_email: data.email,
+              message: data.message
             }
-        );
+          );
         console.log("📨 Resposta automática enviada para o cliente");
 
         return true;
