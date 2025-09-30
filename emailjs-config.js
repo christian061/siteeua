@@ -48,26 +48,29 @@ async function sendContactForm(data) {
         );
         console.log("✅ Email enviado para empresa com sucesso!");
 
-        // TEMPORARIAMENTE DESABILITADO para testar
-        console.log("⏸️ Resposta automática desabilitada temporariamente para teste");
-        
-        /*
-        const customerParams = {
-            name: data.name,        
-            user_email: data.email, // {{user_email}} no template
-            message: data.message   
-        };
+        // Tentar resposta automática com diferentes parâmetros
+        try {
+            const customerParams = {
+                name: data.name,        
+                user_email: data.email,  // Para o template {{user_email}}
+                to_email: data.email,    // Alternativa caso seja {{to_email}}
+                email: data.email,       // Alternativa caso seja {{email}}
+                message: data.message   
+            };
 
-        console.log("📤 Enviando resposta automática com params:", customerParams);
+            console.log("📤 Tentando resposta automática com params:", customerParams);
 
-        // 2. Cliente recebe resposta automática
-        await emailjs.send(
-            EMAILJS_CONFIG.SERVICE_ID,
-            EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID,
-            customerParams
-        );
-        console.log("✅ Resposta automática enviada com sucesso!");
-        */
+            // 2. Cliente recebe resposta automática
+            await emailjs.send(
+                EMAILJS_CONFIG.SERVICE_ID,
+                EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID,
+                customerParams
+            );
+            console.log("✅ Resposta automática enviada com sucesso!");
+        } catch (autoReplyError) {
+            console.warn("⚠️ Erro na resposta automática (não crítico):", autoReplyError.text);
+            console.log("✅ Email principal foi enviado com sucesso mesmo assim!");
+        }
 
         return true;
 
