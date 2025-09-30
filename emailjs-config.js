@@ -48,9 +48,13 @@ async function sendContactForm(data) {
         );
         console.log("✅ Email enviado para empresa com sucesso!");
 
+        // TEMPORARIAMENTE DESABILITADO para testar
+        console.log("⏸️ Resposta automática desabilitada temporariamente para teste");
+        
+        /*
         const customerParams = {
             name: data.name,        
-            user_email: data.email, // Para onde enviar (To Email)
+            user_email: data.email, // {{user_email}} no template
             message: data.message   
         };
 
@@ -63,6 +67,7 @@ async function sendContactForm(data) {
             customerParams
         );
         console.log("✅ Resposta automática enviada com sucesso!");
+        */
 
         return true;
 
