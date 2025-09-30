@@ -766,31 +766,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
 });
 
-// EmailJS Configuration - usando arquivo de configuração separado
-function initializeEmailJS() {
-    console.log('Checking EmailJS initialization...');
-    console.log('EMAILJS_CONFIG available:', typeof EMAILJS_CONFIG !== 'undefined');
-    console.log('emailjs library available:', typeof emailjs !== 'undefined');
-    
-    if (typeof EMAILJS_CONFIG !== 'undefined') {
-        console.log('EmailJS Config:', EMAILJS_CONFIG);
-    }
-    
-    if (typeof EMAILJS_CONFIG !== 'undefined' && typeof emailjs !== 'undefined') {
-        emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
-        console.log('EmailJS initialized successfully with key:', EMAILJS_CONFIG.PUBLIC_KEY);
-    } else {
-        console.warn('EmailJS configuration not found. Please configure emailjs-config.js');
-        console.warn('EMAILJS_CONFIG:', typeof EMAILJS_CONFIG);
-        console.warn('emailjs:', typeof emailjs);
-    }
+// EmailJS já é inicializado pelo emailjs-config.js
+// Função para verificar se EmailJS está pronto
+function isEmailJSReady() {
+    return typeof emailjs !== 'undefined' && typeof EMAILJS_CONFIG !== 'undefined';
 }
-
-// Inicializar EmailJS quando o DOM estiver carregado
-document.addEventListener('DOMContentLoaded', function() {
-    // Aguardar um pouco para garantir que todos os scripts foram carregados
-    setTimeout(initializeEmailJS, 100);
-});
 
 // Form submission handling with EmailJS
 const contactForm = document.getElementById('contactForm');
@@ -849,23 +829,44 @@ if (contactForm) {
             })
         };
         
-        // Send email using EmailJS
-        const emailPromise = (typeof EMAILJS_CONFIG !== 'undefined') 
-            ? emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.TEMPLATE_ID, templateParams)
-            : Promise.reject(new Error('EmailJS configuration not found'));
-            
-        emailPromise
+        // Send email using EmailJS - Sistema Duplo
+        if (!isEmailJSReady()) {
+            showFormMessage('Email service is not available. Please try again later.', 'error');
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            return;
+        }
+
+        // 1. Enviar dados para ADMIN (info@magiccleandom.com)
+        const adminEmailPromise = emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.TEMPLATE_ID, templateParams);
+        
+        // 2. Enviar confirmação automática para CLIENTE
+        const customerEmailPromise = EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID 
+            ? emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID, templateParams)
+            : Promise.resolve();
+
+        // Aguardar ambos os emails
+        Promise.all([adminEmailPromise, customerEmailPromise])
             .then(() => {
                 showFormMessage('Thank you for your message! We will get back to you soon.', 'success');
                 this.reset();
             })
             .catch((error) => {
-                console.error('EmailJS Error Details:', error);
-                console.error('Error status:', error.status);
-                console.error('Error text:', error.text);
-                console.error('Template params:', templateParams);
-                console.error('EmailJS Config:', EMAILJS_CONFIG);
-                showFormMessage('There was an error sending your message. Please try again later.', 'error');
+                console.error('EmailJS Error:', error);
+                let errorMessage = 'There was an error sending your message. Please try again later.';
+                
+                // Mensagens de erro mais específicas
+                if (error.status === 400) {
+                    errorMessage = 'Invalid form data. Please check your information.';
+                } else if (error.status === 401) {
+                    errorMessage = 'Email service authentication failed.';
+                } else if (error.status === 403) {
+                    errorMessage = 'Email service access denied.';
+                } else if (error.status === 404) {
+                    errorMessage = 'Email template not found.';
+                }
+                
+                showFormMessage(errorMessage, 'error');
             })
             .finally(() => {
                 // Reset button state
