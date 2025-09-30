@@ -24,11 +24,13 @@ async function sendContactForm(data) {
             EMAILJS_CONFIG.SERVICE_ID,
             EMAILJS_CONFIG.TEMPLATE_ID,
             {
-              from_name: data.name,
-              reply_to: data.email,
-              phone: data.phone,
-              service: data.service,
-              message: data.message,
+              name: data.name,           // {{name}} no template
+              user_email: data.email,    // {{user_email}} no template  
+              phone: data.phone,         // {{phone}} no template
+              service: data.service,     // {{service}} no template
+              message: data.message,     // {{message}} no template
+              data: new Date().toLocaleString('pt-BR'), // {{data}} no template
+              reply_to: data.email       // Para responder
             }
         );
         console.log("📩 Email enviado para empresa");
