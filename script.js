@@ -766,47 +766,152 @@ document.addEventListener('DOMContentLoaded', function() {
     
 });
 
-// Form submission handling
+// EmailJS Configuration - usando arquivo de configuração separado
+function initializeEmailJS() {
+    console.log('Checking EmailJS initialization...');
+    console.log('EMAILJS_CONFIG available:', typeof EMAILJS_CONFIG !== 'undefined');
+    console.log('emailjs library available:', typeof emailjs !== 'undefined');
+    
+    if (typeof EMAILJS_CONFIG !== 'undefined') {
+        console.log('EmailJS Config:', EMAILJS_CONFIG);
+    }
+    
+    if (typeof EMAILJS_CONFIG !== 'undefined' && typeof emailjs !== 'undefined') {
+        emailjs.init(EMAILJS_CONFIG.PUBLIC_KEY);
+        console.log('EmailJS initialized successfully with key:', EMAILJS_CONFIG.PUBLIC_KEY);
+    } else {
+        console.warn('EmailJS configuration not found. Please configure emailjs-config.js');
+        console.warn('EMAILJS_CONFIG:', typeof EMAILJS_CONFIG);
+        console.warn('emailjs:', typeof emailjs);
+    }
+}
+
+// Inicializar EmailJS quando o DOM estiver carregado
+document.addEventListener('DOMContentLoaded', function() {
+    // Aguardar um pouco para garantir que todos os scripts foram carregados
+    setTimeout(initializeEmailJS, 100);
+});
+
+// Form submission handling with EmailJS
 const contactForm = document.getElementById('contactForm');
 if (contactForm) {
     contactForm.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Basic form validation
-        const name = this.querySelector('#name').value.trim();
-        const email = this.querySelector('#email').value.trim();
-        const phone = this.querySelector('#phone').value.trim();
-        const message = this.querySelector('#message').value.trim();
+        // Get form data
+        const formData = new FormData(this);
+        const name = formData.get('name').trim();
+        const email = formData.get('email').trim();
+        const phone = formData.get('phone').trim();
+        const message = formData.get('message').trim();
+        const service = formData.get('service');
         
+        // Basic form validation
         if (!name || !email || !message) {
-            alert('Please fill in all required fields');
+            showFormMessage('Please fill in all required fields.', 'error');
+            return;
         }
         
-        // If Firebase is available, use it to save the form data
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showFormMessage('Please enter a valid email address.', 'error');
+            return;
+        }
+        
+        // Show loading state
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+        submitBtn.textContent = 'Sending...';
+        submitBtn.disabled = true;
+        
+        // Prepare email parameters - alinhado com o template
+        const templateParams = {
+            // Variáveis que o template espera
+            user_email: email,           // {{user_email}} no template
+            name: name,                  // {{name}} no template  
+            message: message,            // {{message}} no template
+            phone: phone,                // {{phone}} no template
+            service: service,            // {{service}} no template
+            
+            // Variáveis adicionais
+            from_name: name,             // Compatibilidade
+            from_email: email,           // Compatibilidade
+            to_email: 'info@magiccleandom.com',
+            reply_to: email,
+            date: new Date().toLocaleString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        };
+        
+        // Send email using EmailJS
+        const emailPromise = (typeof EMAILJS_CONFIG !== 'undefined') 
+            ? emailjs.send(EMAILJS_CONFIG.SERVICE_ID, EMAILJS_CONFIG.TEMPLATE_ID, templateParams)
+            : Promise.reject(new Error('EmailJS configuration not found'));
+            
+        emailPromise
+            .then(() => {
+                showFormMessage('Thank you for your message! We will get back to you soon.', 'success');
+                this.reset();
+            })
+            .catch((error) => {
+                console.error('EmailJS Error Details:', error);
+                console.error('Error status:', error.status);
+                console.error('Error text:', error.text);
+                console.error('Template params:', templateParams);
+                console.error('EmailJS Config:', EMAILJS_CONFIG);
+                showFormMessage('There was an error sending your message. Please try again later.', 'error');
+            })
+            .finally(() => {
+                // Reset button state
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            });
+        
+        // Also save to Firebase if available (backup)
         if (window.db) {
             db.collection('contacts').add({
                 name: name,
                 email: email,
                 phone: phone,
                 message: message,
-                service: this.querySelector('#service').value,
+                service: service,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-                alert('Thank you for your message! We will get back to you soon.');
-                this.reset();
-            })
-            .catch((error) => {
-                console.error('Error saving contact form:', error);
-                alert('There was an error sending your message. Please try again later.');
+            }).catch((error) => {
+                console.error('Firebase Error:', error);
             });
-        } else {
-            // Fallback if Firebase is not available
-            console.log('Form data:', { name, email, phone, message });
-            alert('Thank you for your message! We will get back to you soon.');
-            this.reset();
         }
     });
+}
+
+// Function to show form messages
+function showFormMessage(message, type) {
+    // Remove any existing message
+    const existingMessage = document.querySelector('.form-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
+    
+    // Create new message element
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `form-message form-message-${type}`;
+    messageDiv.textContent = message;
+    
+    // Insert message before the form
+    const form = document.getElementById('contactForm');
+    form.parentNode.insertBefore(messageDiv, form);
+    
+    // Auto-remove message after 5 seconds
+    setTimeout(() => {
+        if (messageDiv.parentNode) {
+            messageDiv.remove();
+        }
+    }, 5000);
 }
 
 // Hero cleaning effect function - Glass cleaning simulation
