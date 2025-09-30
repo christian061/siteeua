@@ -3237,17 +3237,23 @@ textarea:focus {
         max-width: 100%;
         margin: 10px 0;
         touch-action: none; /* Permite rolagem e zoom personalizado */
+        overflow: hidden; /* Evita scroll desnecessário */
     }
     
     .carousel-slide {
         height: 60vh; /* Aumenta um pouco a altura para melhor visualização */
         touch-action: none; /* Desabilita o zoom padrão do navegador */
+        overflow: hidden; /* Evita que a imagem saia da área visível */
+        position: relative;
     }
     
     .carousel-slide img {
         max-height: 95%;
         max-width: 95%;
         border-radius: 6px;
+        user-select: none; /* Evita seleção de texto/imagem */
+        -webkit-user-select: none;
+        -webkit-touch-callout: none; /* Remove menu de contexto no iOS */
         user-select: none;
         -webkit-user-select: none;
         -moz-user-select: none;
@@ -3305,4 +3311,37 @@ textarea:focus {
 @keyframes fadeInOut {
     0%, 100% { opacity: 0; }
     20%, 80% { opacity: 0.8; }
+}
+
+/* Estilos para a instrução de zoom */
+.zoom-instruction {
+    position: absolute;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: center;
+    z-index: 1001;
+    max-width: 90%;
+    line-height: 1.4;
+    animation: zoomInstructionFade 4s ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes zoomInstructionFade {
+    0% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+    10%, 90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+}
+
+@media (max-width: 768px) {
+    .zoom-instruction {
+        font-size: 12px;
+        padding: 8px 12px;
+        top: 60px;
+    }
 }

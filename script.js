@@ -498,65 +498,113 @@ document.addEventListener('DOMContentLoaded', function() {
                     img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
                 });
                 
-                // Eventos para dispositivos móveis
+                // Variáveis para controle de touch
+                let touchStartDistance = 0;
+                let touchStartZoom = 1;
+                let touchStartX = 0;
+                let touchStartY = 0;
+                let touchStartTranslateX = 0;
+                let touchStartTranslateY = 0;
+                let lastTap = 0;
+                
+                // Eventos para dispositivos móveis - versão otimizada
                 img.addEventListener('touchstart', function(e) {
                     if (e.touches.length === 2) {
-                        // Início do gesto de pinça
+                        // Pinch to zoom - início
                         e.preventDefault();
-                        initialDistance = Math.hypot(
-                            e.touches[0].pageX - e.touches[1].pageX,
-                            e.touches[0].pageY - e.touches[1].pageY
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
+                        touchStartDistance = Math.hypot(
+                            touch2.clientX - touch1.clientX,
+                            touch2.clientY - touch1.clientY
                         );
-                        initialZoom = zoomLevel;
-                    } else if (zoomLevel > 1) {
-                        // Início do arrasto com um dedo
-                        isDragging = true;
-                        const touch = e.touches[0];
-                        startX = touch.clientX - translateX;
-                        startY = touch.clientY - translateY;
+                        touchStartZoom = zoomLevel;
                         img.style.transition = 'none';
+                    } else if (e.touches.length === 1) {
+                        if (zoomLevel > 1) {
+                            // Single touch drag quando com zoom
+                            e.preventDefault();
+                            isDragging = true;
+                            const touch = e.touches[0];
+                            touchStartX = touch.clientX;
+                            touchStartY = touch.clientY;
+                            touchStartTranslateX = translateX;
+                            touchStartTranslateY = translateY;
+                            img.style.transition = 'none';
+                            img.classList.add('dragging');
+                        }
+                        
+                        // Detectar duplo toque
+                        const currentTime = new Date().getTime();
+                        const tapLength = currentTime - lastTap;
+                        if (tapLength < 300 && tapLength > 0) {
+                            // Duplo toque detectado
+                            e.preventDefault();
+                            handleDoubleTap(e.touches[0], img);
+                        }
+                        lastTap = currentTime;
                     }
                 }, { passive: false });
                 
                 img.addEventListener('touchmove', function(e) {
                     if (e.touches.length === 2) {
-                        // Movimento de pinça - zoom
+                        // Pinch to zoom - movimento
                         e.preventDefault();
+                        const touch1 = e.touches[0];
+                        const touch2 = e.touches[1];
                         const currentDistance = Math.hypot(
-                            e.touches[0].pageX - e.touches[1].pageX,
-                            e.touches[0].pageY - e.touches[1].pageY
+                            touch2.clientX - touch1.clientX,
+                            touch2.clientY - touch1.clientY
                         );
                         
-                        // Ajusta o zoom baseado na distância entre os dedos
-                        if (initialDistance > 0) {
-                            const scale = currentDistance / initialDistance;
-                            zoomLevel = Math.min(Math.max(initialZoom * scale, 1), 3);
+                        if (touchStartDistance > 0) {
+                            const scale = currentDistance / touchStartDistance;
+                            const newZoomLevel = Math.max(1, Math.min(3, touchStartZoom * scale));
                             
-                            // Ajusta a posição para manter o zoom no ponto médio entre os dedos
+                            // Calcular o ponto médio entre os dedos
                             const rect = img.getBoundingClientRect();
-                            const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-                            const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+                            const midX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                            const midY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
                             
-                            // Ajusta a posição para manter o ponto entre os dedos estável
-                            const scaleChange = zoomLevel / initialZoom;
-                            translateX = midX * (1 - scaleChange) + translateX * scaleChange;
-                            translateY = midY * (1 - scaleChange) + translateY * scaleChange;
+                            // Ajustar posição para manter o zoom centrado no ponto médio
+                            if (newZoomLevel > 1) {
+                                const containerRect = img.parentElement.getBoundingClientRect();
+                                const imgCenterX = rect.width / 2;
+                                const imgCenterY = rect.height / 2;
+                                
+                                translateX = (imgCenterX - midX) * (newZoomLevel - 1) / newZoomLevel;
+                                translateY = (imgCenterY - midY) * (newZoomLevel - 1) / newZoomLevel;
+                                
+                                // Limitar o deslocamento
+                                const maxTranslateX = Math.max(0, (rect.width * newZoomLevel - containerRect.width) / 2);
+                                const maxTranslateY = Math.max(0, (rect.height * newZoomLevel - containerRect.height) / 2);
+                                
+                                translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
+                                translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
+                            } else {
+                                translateX = 0;
+                                translateY = 0;
+                            }
                             
+                            zoomLevel = newZoomLevel;
                             applyZoom(img);
                         }
-                    } else if (isDragging && zoomLevel > 1) {
-                        // Arrastar com um dedo
+                    } else if (e.touches.length === 1 && isDragging && zoomLevel > 1) {
+                        // Single touch drag quando com zoom
                         e.preventDefault();
                         const touch = e.touches[0];
                         
                         const rect = img.getBoundingClientRect();
                         const containerRect = img.parentElement.getBoundingClientRect();
                         
-                        // Calcular a nova posição
-                        translateX = touch.clientX - startX;
-                        translateY = touch.clientY - startY;
+                        // Calcular nova posição baseada no movimento do dedo
+                        const deltaX = touch.clientX - touchStartX;
+                        const deltaY = touch.clientY - touchStartY;
                         
-                        // Limitar o arrasto
+                        translateX = touchStartTranslateX + deltaX;
+                        translateY = touchStartTranslateY + deltaY;
+                        
+                        // Limitar o arrasto para não sair muito da área visível
                         const maxTranslateX = Math.max(0, (rect.width * zoomLevel - containerRect.width) / 2);
                         const maxTranslateY = Math.max(0, (rect.height * zoomLevel - containerRect.height) / 2);
                         
@@ -567,57 +615,46 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, { passive: false });
                 
-                img.addEventListener('touchend', function() {
-                    initialDistance = 0;
+                img.addEventListener('touchend', function(e) {
+                    touchStartDistance = 0;
                     isDragging = false;
                     img.style.transition = 'transform 0.3s ease';
-                });
+                    img.classList.remove('dragging');
+                }, { passive: false });
                 
-                // Duplo toque para resetar o zoom
-                let lastTap = 0;
-                img.addEventListener('touchend', function(e) {
-                    const currentTime = new Date().getTime();
-                    const tapLength = currentTime - lastTap;
-                    
-                    if (e.touches.length === 0 && tapLength < 300 && tapLength > 0) {
-                        // Duplo toque detectado
-                        e.preventDefault();
-                        if (zoomLevel > 1) {
-                            // Se já estiver com zoom, volta ao normal
-                            zoomLevel = 1;
-                            translateX = 0;
-                            translateY = 0;
-                        } else {
-                            // Se estiver normal, faz zoom no ponto tocado
-                            const touch = e.changedTouches[0];
-                            const rect = img.getBoundingClientRect();
-                            const x = touch.clientX - rect.left;
-                            const y = touch.clientY - rect.top;
-                            
-                            zoomLevel = 2; // Nível de zoom fixo ao dar duplo toque
-                            
-                            // Ajusta a posição para centralizar no ponto tocado
-                            const containerRect = img.parentElement.getBoundingClientRect();
-                            const imgWidth = rect.width;
-                            const imgHeight = rect.height;
-                            
-                            // Calcula o deslocamento para manter o ponto tocado na mesma posição
-                            translateX = (imgWidth / 2 - x) * (zoomLevel - 1);
-                            translateY = (imgHeight / 2 - y) * (zoomLevel - 1);
-                            
-                            // Limita o deslocamento
-                            const maxTranslateX = (imgWidth * zoomLevel - containerRect.width) / 2;
-                            const maxTranslateY = (imgHeight * zoomLevel - containerRect.height) / 2;
-                            
-                            translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
-                            translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
-                        }
+                // Função para lidar com duplo toque
+                function handleDoubleTap(touch, img) {
+                    if (zoomLevel > 1) {
+                        // Se já estiver com zoom, volta ao normal
+                        zoomLevel = 1;
+                        translateX = 0;
+                        translateY = 0;
+                    } else {
+                        // Se estiver normal, faz zoom no ponto tocado
+                        const rect = img.getBoundingClientRect();
+                        const containerRect = img.parentElement.getBoundingClientRect();
+                        const x = touch.clientX - rect.left;
+                        const y = touch.clientY - rect.top;
                         
-                        applyZoom(img);
+                        zoomLevel = 2.5; // Nível de zoom para duplo toque
+                        
+                        // Ajustar posição para centralizar no ponto tocado
+                        const imgCenterX = rect.width / 2;
+                        const imgCenterY = rect.height / 2;
+                        
+                        translateX = (imgCenterX - x) * (zoomLevel - 1) / zoomLevel;
+                        translateY = (imgCenterY - y) * (zoomLevel - 1) / zoomLevel;
+                        
+                        // Limitar o deslocamento
+                        const maxTranslateX = Math.max(0, (rect.width * zoomLevel - containerRect.width) / 2);
+                        const maxTranslateY = Math.max(0, (rect.height * zoomLevel - containerRect.height) / 2);
+                        
+                        translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
+                        translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
                     }
                     
-                    lastTap = currentTime;
-                }, { passive: false });
+                    applyZoom(img);
+                }
                 
                 document.addEventListener('mouseup', function() {
                     if (isDragging) {
@@ -649,77 +686,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         img.style.transition = 'none';
                     }, 300);
-                });
-                
-                // Suporte para touch/mobile
-                let touchStartDistance = 0;
-                let touchStartZoom = 1;
-                let touchStartX = 0;
-                let touchStartY = 0;
-                let touchStartTranslateX = 0;
-                let touchStartTranslateY = 0;
-                
-                img.addEventListener('touchstart', function(e) {
-                    if (e.touches.length === 2) {
-                        // Pinch to zoom
-                        e.preventDefault();
-                        const touch1 = e.touches[0];
-                        const touch2 = e.touches[1];
-                        touchStartDistance = Math.hypot(
-                            touch2.clientX - touch1.clientX,
-                            touch2.clientY - touch1.clientY
-                        );
-                        touchStartZoom = zoomLevel;
-                    } else if (e.touches.length === 1 && zoomLevel > 1) {
-                        // Single touch drag when zoomed
-                        e.preventDefault();
-                        const touch = e.touches[0];
-                        touchStartX = touch.clientX;
-                        touchStartY = touch.clientY;
-                        touchStartTranslateX = translateX;
-                        touchStartTranslateY = translateY;
-                        img.style.transition = 'none';
-                    }
-                });
-                
-                img.addEventListener('touchmove', function(e) {
-                    if (e.touches.length === 2) {
-                        // Pinch to zoom
-                        e.preventDefault();
-                        const touch1 = e.touches[0];
-                        const touch2 = e.touches[1];
-                        const currentDistance = Math.hypot(
-                            touch2.clientX - touch1.clientX,
-                            touch2.clientY - touch1.clientY
-                        );
-                        
-                        const scale = currentDistance / touchStartDistance;
-                        zoomLevel = Math.max(1, Math.min(3, touchStartZoom * scale));
-                        
-                        if (zoomLevel === 1) {
-                            translateX = 0;
-                            translateY = 0;
-                        }
-                        
-                        applyZoom(img);
-                    } else if (e.touches.length === 1 && zoomLevel > 1) {
-                        // Single touch drag when zoomed
-                        e.preventDefault();
-                        const touch = e.touches[0];
-                        translateX = touchStartTranslateX + (touch.clientX - touchStartX);
-                        translateY = touchStartTranslateY + (touch.clientY - touchStartY);
-                        
-                        // Limitar o arrasto
-                        const maxTranslate = 100 * zoomLevel;
-                        translateX = Math.max(-maxTranslate, Math.min(maxTranslate, translateX));
-                        translateY = Math.max(-maxTranslate, Math.min(maxTranslate, translateY));
-                        
-                        applyZoom(img);
-                    }
-                });
-                
-                img.addEventListener('touchend', function(e) {
-                    img.style.transition = 'transform 0.3s ease';
                 });
             });
         }
