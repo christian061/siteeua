@@ -48,14 +48,12 @@ async function sendContactForm(data) {
         );
         console.log("✅ Email enviado para empresa com sucesso!");
 
-        // Tentar resposta automática com diferentes parâmetros
+        // Resposta automática para o cliente
         try {
             const customerParams = {
-                name: data.name,        
-                user_email: data.email,  // Para o template {{user_email}}
-                to_email: data.email,    // Alternativa caso seja {{to_email}}
-                email: data.email,       // Alternativa caso seja {{email}}
-                message: data.message   
+                name: data.name,        // {{name}} no template
+                email: data.email,      // {{email}} no template (To Email)
+                message: data.message   // {{message}} no template
             };
 
             console.log("📤 Tentando resposta automática com params:", customerParams);
