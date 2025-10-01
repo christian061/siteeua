@@ -1,8 +1,16 @@
 // Main JavaScript file for Magic CleanDom
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Mobile performance optimization - detect mobile devices
+    // Mobile performance optimization - detect mobile
     const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+    // Teste de touch events no mobile
+    if (isMobile) {
+        console.log('📱 MOBILE DETECTADO - Testando touch events...');
+        document.body.addEventListener('touchstart', function(e) {
+            console.log(`🧪 TESTE TOUCH: ${e.touches.length} dedos na página`);
+        }, { passive: false });
+    }
     
     // Garantir que o modal está fechado ao carregar a página
     const modal = document.getElementById('certificateModal');
@@ -229,6 +237,18 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Função para mostrar um slide específico
         function showSlide(index) {
+            // Reset zoom da imagem atual antes de trocar
+            const currentActiveImg = document.querySelector('.carousel-slide.active img');
+            if (currentActiveImg) {
+                const state = getZoomState(currentActiveImg);
+                state.zoomLevel = 1;
+                state.translateX = 0;
+                state.translateY = 0;
+                currentActiveImg.style.transform = 'scale(1)';
+                currentActiveImg.style.transition = 'transform 0.3s ease';
+                currentActiveImg.classList.remove('zoomed');
+            }
+            
             // Esconde todos os slides
             slides.forEach(slide => {
                 slide.classList.remove('active');
@@ -423,7 +443,12 @@ document.addEventListener('DOMContentLoaded', function() {
         function setupMobileZoom() {
             const modalElement = document.getElementById('certificateModal');
             
-            if (!modalElement) return;
+            if (!modalElement) {
+                console.error('❌ Modal certificateModal não encontrado!');
+                return;
+            }
+            
+            console.log('✅ Modal encontrado, configurando eventos touch...');
             
             let touchStartDistance = 0;
             let touchStartZoom = 1;
@@ -435,9 +460,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Touch events para PINCH ZOOM em qualquer lugar do modal
             modalElement.addEventListener('touchstart', function(e) {
-                console.log(`👆 Mobile Touchstart: ${e.touches.length} dedos`);
+                console.log(`👆 MOBILE TOUCHSTART: ${e.touches.length} dedos`);
+                console.log('📍 Target element:', e.target.tagName, e.target.className);
+                console.log('🎯 Event chegou no modal!');
+                
                 const activeImg = document.querySelector('.carousel-slide.active img');
-                if (!activeImg) return;
+                if (!activeImg) {
+                    console.error('❌ Nenhuma imagem ativa encontrada!');
+                    return;
+                }
+                
+                console.log('✅ Imagem ativa encontrada:', activeImg.src);
                 
                 const state = getZoomState(activeImg);
                 

@@ -3008,9 +3008,9 @@ textarea:focus {
 }
 
 .carousel-button {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    position: fixed !important; /* Fixed para não ser afetado pelo zoom */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
     background-color: var(--light-green);
     color: white;
     opacity: 0.9;
@@ -3018,7 +3018,7 @@ textarea:focus {
     height: 55px !important;
     border-radius: 50% !important;
     font-size: 20px !important;
-    display: flex !important;
+    display: none !important; /* Escondido por padrão */
     align-items: center !important;
     justify-content: center !important;
     border: none !important;
@@ -3026,7 +3026,13 @@ textarea:focus {
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
     transition: all 0.3s ease !important;
     pointer-events: auto !important;
-    z-index: 100 !important;
+    z-index: 1001 !important; /* Acima do modal */
+}
+
+/* Mostrar setas apenas quando modal estiver aberto */
+.modal[style*="display: flex"] .carousel-button,
+.modal[style*="display: block"] .carousel-button {
+    display: flex !important;
 }
 
 .carousel-button:hover {
@@ -3049,11 +3055,11 @@ textarea:focus {
 }
 
 .carousel-button.prev {
-    left: 15px;
+    left: 20px !important; /* Posição fixa na tela */
 }
 
 .carousel-button.next {
-    right: 15px;
+    right: 20px !important; /* Posição fixa na tela */
 }
 
 .carousel-indicators {
