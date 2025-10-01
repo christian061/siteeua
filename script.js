@@ -363,19 +363,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Adicionar também evento touch para mobile
-        window.addEventListener('touchend', function(e) {
-            // Fechar modal ao tocar fora (área escura) - apenas com 1 dedo
-            if (e.changedTouches.length === 1 && e.target === modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
-                resetZoom(); // Reset zoom ao fechar
-                // Restaura a posição de rolagem ao fechar
-                if (window.innerWidth <= 768) {
-                    window.scrollTo(0, 0);
-                }
-            }
-        });
+        // Modal fecha apenas com click (não touch para evitar conflito com zoom)
+        // Touch events são tratados pelo sistema de zoom
         
         // Função para obter/criar estado de zoom para uma imagem
         function getZoomState(img) {
@@ -463,12 +452,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Touch events no WINDOW com captura para interceptar tudo
             window.addEventListener('touchstart', function(e) {
+                console.log(`🧪 TOUCHSTART GLOBAL: ${e.touches.length} dedos, modal: ${isModalOpen}`);
+                
                 if (!isModalOpen) return;
                 
                 console.log(`👆 WINDOW TOUCHSTART: ${e.touches.length} dedos`);
                 
                 const activeImg = document.querySelector('.carousel-slide.active img');
-                if (!activeImg) return;
+                if (!activeImg) {
+                    console.log('❌ Nenhuma imagem ativa!');
+                    return;
+                }
                 
                 const state = getZoomState(activeImg);
                 
@@ -786,6 +780,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Inicializar zoom nas imagens
+        console.log('🚀 Iniciando setupImageZoom...');
         setupImageZoom();
         
         // Cada imagem mantém seu próprio estado de zoom

@@ -3293,13 +3293,13 @@ textarea:focus {
     .carousel-container {
         max-width: 100%;
         margin: 10px 0;
-        touch-action: auto; /* Comportamento padrão no mobile */
+        touch-action: none !important; /* Zoom customizado no mobile */
         overflow: hidden; /* Evita scroll desnecessário */
     }
     
     .carousel-slide {
         height: 60vh; /* Aumenta um pouco a altura para melhor visualização */
-        touch-action: auto; /* Permite comportamento padrão no mobile */
+        touch-action: none !important; /* Zoom customizado no mobile */
         overflow: hidden; /* Evita que a imagem saia da área visível */
         position: relative;
     }
