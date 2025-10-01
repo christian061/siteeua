@@ -218,6 +218,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const indicators = document.querySelectorAll('.indicator');
         let currentSlide = 0;
         
+        console.log(`🖼️ Certificados: ${slides.length} slides encontrados`);
+        console.log(`🔘 Indicadores: ${indicators.length}`);
+        slides.forEach((slide, i) => {
+            const img = slide.querySelector('img');
+            console.log(`Slide ${i}: ${img ? img.src : 'sem imagem'}`);
+            
+            if (img) {
+                // Log quando imagem carregar
+                img.addEventListener('load', () => {
+                    console.log(`✅ Imagem ${i} carregada: ${img.naturalWidth}x${img.naturalHeight}`);
+                });
+                
+                // Log quando imagem falhar
+                img.addEventListener('error', () => {
+                    console.error(`❌ Erro ao carregar imagem ${i}: ${img.src}`);
+                });
+            }
+        });
+        
         // Estado de zoom independente para cada imagem
         const zoomStates = new Map();
         
@@ -228,9 +247,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Função para mostrar um slide específico
         function showSlide(index) {
+            console.log(`📸 Mostrando slide ${index} de ${slides.length} slides`);
+            
             // Esconde todos os slides
-            slides.forEach(slide => {
+            slides.forEach((slide, i) => {
                 slide.classList.remove('active');
+                const img = slide.querySelector('img');
+                console.log(`Slide ${i}: removed active, img=${img ? 'exists' : 'missing'}, src=${img?.src}`);
             });
             
             // Atualiza indicadores
@@ -241,6 +264,15 @@ document.addEventListener('DOMContentLoaded', function() {
             // Mostra o slide atual
             if (slides[index]) {
                 slides[index].classList.add('active');
+                const img = slides[index].querySelector('img');
+                const display = window.getComputedStyle(slides[index]).display;
+                console.log(`✅ Slide ${index} ativado`);
+                console.log(`   - Display: ${display}`);
+                console.log(`   - Has .active: ${slides[index].classList.contains('active')}`);
+                console.log(`   - Img src: ${img?.src}`);
+                console.log(`   - Img display: ${img ? window.getComputedStyle(img).display : 'no img'}`);
+            } else {
+                console.error(`❌ Slide ${index} não encontrado!`);
             }
             
             currentSlide = index;
@@ -249,12 +281,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Próximo slide
         function nextSlide() {
             const nextIndex = (currentSlide + 1) % slides.length;
+            console.log(`➡️ Próximo: de ${currentSlide} para ${nextIndex}`);
             showSlide(nextIndex);
         }
         
         // Slide anterior
         function prevSlide() {
             const prevIndex = (currentSlide - 1 + slides.length) % slides.length;
+            console.log(`⬅️ Anterior: de ${currentSlide} para ${prevIndex}`);
             showSlide(prevIndex);
         }
         
@@ -316,30 +350,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 } else {
                     window.scrollTo(0, scrollPosition);
                 }
-                // Mostrar instrução de zoom
-                showZoomInstruction();
                 console.log('Modal de certificados aberto');
             });
-        }
-        
-        // Função para mostrar instrução de zoom
-        function showZoomInstruction() {
-            const existingInstruction = modal.querySelector('.zoom-instruction');
-            if (existingInstruction) {
-                existingInstruction.remove();
-            }
-            
-            const instruction = document.createElement('div');
-            instruction.className = 'zoom-instruction';
-            instruction.innerHTML = '🔍 Desktop: Scroll para zoom • Arraste para mover<br>📱 Mobile: Pinça para zoom • Toque duplo para resetar';
-            modal.appendChild(instruction);
-            
-            // Remove a instrução após 4 segundos
-            setTimeout(() => {
-                if (instruction.parentNode) {
-                    instruction.remove();
-                }
-            }, 4000);
         }
         
         // Fechar modal ao clicar no X
