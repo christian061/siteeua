@@ -4,12 +4,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mobile performance optimization - detect mobile
     const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-    // Teste de touch events no mobile
+    // Mobile detectado
     if (isMobile) {
-        console.log('📱 MOBILE DETECTADO - Testando touch events...');
-        document.body.addEventListener('touchstart', function(e) {
-            console.log(`🧪 TESTE TOUCH: ${e.touches.length} dedos na página`);
-        }, { passive: false });
+        console.log('📱 MOBILE DETECTADO');
     }
     
     // Garantir que o modal está fechado ao carregar a página
@@ -441,14 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Função para zoom mobile (touch)
         function setupMobileZoom() {
-            const modalElement = document.getElementById('certificateModal');
-            
-            if (!modalElement) {
-                console.error('❌ Modal certificateModal não encontrado!');
-                return;
-            }
-            
-            console.log('✅ Modal encontrado, configurando eventos touch...');
+            console.log('🔧 Configurando zoom mobile...');
             
             let touchStartDistance = 0;
             let touchStartZoom = 1;
@@ -457,20 +447,28 @@ document.addEventListener('DOMContentLoaded', function() {
             let touchStartTranslateX = 0;
             let touchStartTranslateY = 0;
             let lastTap = 0;
+            let isModalOpen = false;
             
-            // Touch events para PINCH ZOOM em qualquer lugar do modal
-            modalElement.addEventListener('touchstart', function(e) {
-                console.log(`👆 MOBILE TOUCHSTART: ${e.touches.length} dedos`);
-                console.log('📍 Target element:', e.target.tagName, e.target.className);
-                console.log('🎯 Event chegou no modal!');
+            // Detectar quando modal abre/fecha
+            const modal = document.getElementById('certificateModal');
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                        isModalOpen = modal.style.display === 'flex' || modal.style.display === 'block';
+                        console.log('📱 Modal status:', isModalOpen ? 'ABERTO' : 'FECHADO');
+                    }
+                });
+            });
+            observer.observe(modal, { attributes: true });
+            
+            // Touch events no WINDOW com captura para interceptar tudo
+            window.addEventListener('touchstart', function(e) {
+                if (!isModalOpen) return;
+                
+                console.log(`👆 WINDOW TOUCHSTART: ${e.touches.length} dedos`);
                 
                 const activeImg = document.querySelector('.carousel-slide.active img');
-                if (!activeImg) {
-                    console.error('❌ Nenhuma imagem ativa encontrada!');
-                    return;
-                }
-                
-                console.log('✅ Imagem ativa encontrada:', activeImg.src);
+                if (!activeImg) return;
                 
                 const state = getZoomState(activeImg);
                 
@@ -510,16 +508,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                     lastTap = currentTime;
                 }
-            }, { passive: false });
+            }, { passive: false, capture: true });
             
-            modalElement.addEventListener('touchmove', function(e) {
+            window.addEventListener('touchmove', function(e) {
+                if (!isModalOpen) return;
+                
                 const activeImg = document.querySelector('.carousel-slide.active img');
                 if (!activeImg) return;
                 
                 const state = getZoomState(activeImg);
                 
                 if (e.touches.length === 2) {
-                    console.log('🔍 Pinch zoom em movimento!');
+                    console.log('🔍 PINCH ZOOM EM MOVIMENTO!');
                     e.preventDefault();
                     e.stopPropagation();
                     
@@ -586,9 +586,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     
                     activeImg.style.transform = `scale(${state.zoomLevel}) translate(${state.translateX}px, ${state.translateY}px)`;
                 }
-            }, { passive: false });
+            }, { passive: false, capture: true });
             
-            modalElement.addEventListener('touchend', function(e) {
+            window.addEventListener('touchend', function(e) {
+                if (!isModalOpen) return;
+                
                 const activeImg = document.querySelector('.carousel-slide.active img');
                 if (activeImg) {
                     touchStartDistance = 0;
@@ -596,7 +598,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     activeImg.style.transition = 'transform 0.3s ease';
                     activeImg.classList.remove('dragging');
                 }
-            }, { passive: false });
+            }, { passive: false, capture: true });
             
             // Função para lidar com duplo toque
             function handleDoubleTap(touch, img) {
