@@ -1,7 +1,7 @@
 // Configuração do EmailJS
 const EMAILJS_CONFIG = {
     PUBLIC_KEY: "w9UgEZ3aGXFWo2lNr",       // sua chave pública
-    SERVICE_ID: "service_a436nr6",          // seu serviço (Gmail)
+    SERVICE_ID: "service_a436nr6",          // seu serviço SMTP (Hostinger)
     TEMPLATE_ID: "template_h90o89q",        // template para RECEBER mensagens (empresa)
     CUSTOMER_TEMPLATE_ID: "template_48tdlu9" // template para RESPOSTA automática (cliente)
 };
@@ -57,17 +57,24 @@ async function sendContactForm(data) {
             };
 
             console.log("📤 Tentando resposta automática com params:", customerParams);
+            console.log("🔧 Usando SERVICE_ID:", EMAILJS_CONFIG.SERVICE_ID);
+            console.log("🔧 Usando CUSTOMER_TEMPLATE_ID:", EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID);
 
             // 2. Cliente recebe resposta automática
-            await emailjs.send(
+            const response = await emailjs.send(
                 EMAILJS_CONFIG.SERVICE_ID,
                 EMAILJS_CONFIG.CUSTOMER_TEMPLATE_ID,
                 customerParams
             );
             console.log("✅ Resposta automática enviada com sucesso!");
+            console.log("📧 Response:", response);
         } catch (autoReplyError) {
-            console.warn("⚠️ Erro na resposta automática (não crítico):", autoReplyError);
-            console.error("Detalhes do erro:", autoReplyError.text || autoReplyError.message);
+            console.error("⚠️ ERRO na resposta automática:");
+            console.error("- Tipo:", autoReplyError.name);
+            console.error("- Mensagem:", autoReplyError.message);
+            console.error("- Status:", autoReplyError.status);
+            console.error("- Text:", autoReplyError.text);
+            console.error("- Objeto completo:", autoReplyError);
             console.log("✅ Email principal foi enviado com sucesso mesmo assim!");
         }
 
