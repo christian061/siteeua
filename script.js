@@ -217,12 +217,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const nextButton = document.querySelector('.carousel-button.next');
         const indicators = document.querySelectorAll('.indicator');
         let currentSlide = 0;
-        let zoomLevel = 1;
+        
+        // Estado de zoom independente para cada imagem
+        const zoomStates = new Map();
+        
+        // Variáveis de arrastar compartilhadas
         let isDragging = false;
         let startX = 0;
         let startY = 0;
-        let translateX = 0;
-        let translateY = 0;
         
         // Função para mostrar um slide específico
         function showSlide(index) {
@@ -366,31 +368,46 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
+        // Função para obter/criar estado de zoom para uma imagem
+        function getZoomState(img) {
+            if (!zoomStates.has(img)) {
+                zoomStates.set(img, {
+                    zoomLevel: 1,
+                    translateX: 0,
+                    translateY: 0
+                });
+            }
+            return zoomStates.get(img);
+        }
+        
         // Função para resetar o zoom
         function resetZoom() {
-            zoomLevel = 1;
-            translateX = 0;
-            translateY = 0;
             const activeSlide = document.querySelector('.carousel-slide.active img');
             if (activeSlide) {
+                const state = getZoomState(activeSlide);
+                state.zoomLevel = 1;
+                state.translateX = 0;
+                state.translateY = 0;
                 activeSlide.style.transform = 'scale(1) translate(0px, 0px)';
                 activeSlide.style.cursor = 'zoom-in';
+                activeSlide.classList.remove('zoomed');
             }
         }
         
         // Função para aplicar zoom
         function applyZoom(img) {
-            if (zoomLevel > 1) {
+            const state = getZoomState(img);
+            if (state.zoomLevel > 1) {
                 // Aplica zoom e permite arrastar
-                const transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
+                const transform = `scale(${state.zoomLevel}) translate(${state.translateX}px, ${state.translateY}px)`;
                 img.style.transform = transform;
                 img.style.cursor = 'zoom-out';
                 img.classList.add('zoomed');
             } else {
                 // Reset ao zoom normal
-                zoomLevel = 1;
-                translateX = 0;
-                translateY = 0;
+                state.zoomLevel = 1;
+                state.translateX = 0;
+                state.translateY = 0;
                 img.style.transform = 'scale(1)';
                 img.style.cursor = 'zoom-in';
                 img.classList.remove('zoomed');
@@ -415,13 +432,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     e.preventDefault();
                     e.stopPropagation();
                     
+                    const state = getZoomState(img);
+                    
                     // Determinar a direção do zoom (in/out)
                     if (e.deltaY < 0) {
                         // Zoom in
-                        zoomLevel = Math.min(zoomLevel + 0.1, 3);
+                        state.zoomLevel = Math.min(state.zoomLevel + 0.1, 3);
                         
                         // Se estiver fazendo zoom in e ainda não tiver zoom, centraliza no ponto clicado
-                        if (zoomLevel > 1 && Math.abs(zoomLevel - 1.1) < 0.01) {
+                        if (state.zoomLevel > 1 && Math.abs(state.zoomLevel - 1.1) < 0.01) {
                             const rect = img.getBoundingClientRect();
                             const containerRect = img.parentElement.getBoundingClientRect();
                             
@@ -430,25 +449,25 @@ document.addEventListener('DOMContentLoaded', function() {
                             const clickY = e.clientY - rect.top;
                             
                             // Calcula o deslocamento necessário para centralizar no ponto clicado
-                            translateX = (rect.width / 2 - clickX) * (zoomLevel - 1);
-                            translateY = (rect.height / 2 - clickY) * (zoomLevel - 1);
+                            state.translateX = (rect.width / 2 - clickX) * (state.zoomLevel - 1);
+                            state.translateY = (rect.height / 2 - clickY) * (state.zoomLevel - 1);
                             
                             // Limita o deslocamento para não sair muito da área visível
-                            const maxTranslateX = (rect.width * zoomLevel - containerRect.width) / 2;
-                            const maxTranslateY = (rect.height * zoomLevel - containerRect.height) / 2;
+                            const maxTranslateX = (rect.width * state.zoomLevel - containerRect.width) / 2;
+                            const maxTranslateY = (rect.height * state.zoomLevel - containerRect.height) / 2;
                             
-                            translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
-                            translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
+                            state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
+                            state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
                         }
                     } else {
                         // Zoom out
-                        zoomLevel = Math.max(zoomLevel - 0.1, 1);
+                        state.zoomLevel = Math.max(state.zoomLevel - 0.1, 1);
                         
                         // Se chegou ao zoom 1, reseta a posição
-                        if (zoomLevel <= 1) {
-                            zoomLevel = 1;
-                            translateX = 0;
-                            translateY = 0;
+                        if (state.zoomLevel <= 1) {
+                            state.zoomLevel = 1;
+                            state.translateX = 0;
+                            state.translateY = 0;
                         }
                     }
                     
@@ -457,45 +476,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Arrastar quando com zoom
                 img.addEventListener('mousedown', function(e) {
-                    if (zoomLevel <= 1) return;
+                    const state = getZoomState(img);
+                    if (state.zoomLevel <= 1) return;
                     
                     isDragging = true;
-                    startX = e.clientX - translateX;
-                    startY = e.clientY - translateY;
+                    startX = e.clientX - state.translateX;
+                    startY = e.clientY - state.translateY;
                     img.style.cursor = 'grabbing';
                     img.style.transition = 'none';
                     e.preventDefault();
                 });
                 
                 document.addEventListener('mousemove', function(e) {
-                    if (!isDragging || zoomLevel <= 1) return;
+                    if (!isDragging) return;
                     
-                    const rect = img.getBoundingClientRect();
-                    const containerRect = img.parentElement.getBoundingClientRect();
+                    const activeImg = document.querySelector('.carousel-slide.active img');
+                    if (!activeImg) return;
+                    
+                    const state = getZoomState(activeImg);
+                    if (state.zoomLevel <= 1) return;
+                    
+                    const rect = activeImg.getBoundingClientRect();
+                    const containerRect = activeImg.parentElement.getBoundingClientRect();
                     
                     // Calcular a nova posição
-                    translateX = e.clientX - startX;
-                    translateY = e.clientY - startY;
+                    state.translateX = e.clientX - startX;
+                    state.translateY = e.clientY - startY;
                     
                     // Limitar o arrasto para não sair muito da imagem
-                    const maxTranslateX = Math.max(0, (rect.width * zoomLevel - containerRect.width) / 2);
-                    const maxTranslateY = Math.max(0, (rect.height * zoomLevel - containerRect.height) / 2);
+                    const maxTranslateX = Math.max(0, (rect.width * state.zoomLevel - containerRect.width) / 2);
+                    const maxTranslateY = Math.max(0, (rect.height * state.zoomLevel - containerRect.height) / 2);
                     
                     // Aplicar limites de deslocamento
-                    if (rect.width * zoomLevel > containerRect.width) {
-                        translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
+                    if (rect.width * state.zoomLevel > containerRect.width) {
+                        state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
                     } else {
-                        translateX = 0;
+                        state.translateX = 0;
                     }
                     
-                    if (rect.height * zoomLevel > containerRect.height) {
-                        translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
+                    if (rect.height * state.zoomLevel > containerRect.height) {
+                        state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
                     } else {
-                        translateY = 0;
+                        state.translateY = 0;
                     }
                     
                     // Aplicar a transformação diretamente para melhor performance
-                    img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
+                    activeImg.style.transform = `scale(${state.zoomLevel}) translate(${state.translateX}px, ${state.translateY}px)`;
                 });
                 
                 // Variáveis para controle de touch
@@ -509,6 +535,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Eventos para dispositivos móveis - versão otimizada
                 img.addEventListener('touchstart', function(e) {
+                    const state = getZoomState(img);
+                    
                     if (e.touches.length === 2) {
                         // Pinch to zoom - início
                         e.preventDefault();
@@ -518,18 +546,18 @@ document.addEventListener('DOMContentLoaded', function() {
                             touch2.clientX - touch1.clientX,
                             touch2.clientY - touch1.clientY
                         );
-                        touchStartZoom = zoomLevel;
+                        touchStartZoom = state.zoomLevel;
                         img.style.transition = 'none';
                     } else if (e.touches.length === 1) {
-                        if (zoomLevel > 1) {
+                        if (state.zoomLevel > 1) {
                             // Single touch drag quando com zoom
                             e.preventDefault();
                             isDragging = true;
                             const touch = e.touches[0];
                             touchStartX = touch.clientX;
                             touchStartY = touch.clientY;
-                            touchStartTranslateX = translateX;
-                            touchStartTranslateY = translateY;
+                            touchStartTranslateX = state.translateX;
+                            touchStartTranslateY = state.translateY;
                             img.style.transition = 'none';
                             img.classList.add('dragging');
                         }
@@ -547,6 +575,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, { passive: false });
                 
                 img.addEventListener('touchmove', function(e) {
+                    const state = getZoomState(img);
+                    
                     if (e.touches.length === 2) {
                         // Pinch to zoom - movimento
                         e.preventDefault();
@@ -572,24 +602,24 @@ document.addEventListener('DOMContentLoaded', function() {
                                 const imgCenterX = rect.width / 2;
                                 const imgCenterY = rect.height / 2;
                                 
-                                translateX = (imgCenterX - midX) * (newZoomLevel - 1) / newZoomLevel;
-                                translateY = (imgCenterY - midY) * (newZoomLevel - 1) / newZoomLevel;
+                                state.translateX = (imgCenterX - midX) * (newZoomLevel - 1) / newZoomLevel;
+                                state.translateY = (imgCenterY - midY) * (newZoomLevel - 1) / newZoomLevel;
                                 
                                 // Limitar o deslocamento
                                 const maxTranslateX = Math.max(0, (rect.width * newZoomLevel - containerRect.width) / 2);
                                 const maxTranslateY = Math.max(0, (rect.height * newZoomLevel - containerRect.height) / 2);
                                 
-                                translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
-                                translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
+                                state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
+                                state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
                             } else {
-                                translateX = 0;
-                                translateY = 0;
+                                state.translateX = 0;
+                                state.translateY = 0;
                             }
                             
-                            zoomLevel = newZoomLevel;
+                            state.zoomLevel = newZoomLevel;
                             applyZoom(img);
                         }
-                    } else if (e.touches.length === 1 && isDragging && zoomLevel > 1) {
+                    } else if (e.touches.length === 1 && isDragging && state.zoomLevel > 1) {
                         // Single touch drag quando com zoom
                         e.preventDefault();
                         const touch = e.touches[0];
@@ -601,17 +631,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         const deltaX = touch.clientX - touchStartX;
                         const deltaY = touch.clientY - touchStartY;
                         
-                        translateX = touchStartTranslateX + deltaX;
-                        translateY = touchStartTranslateY + deltaY;
+                        state.translateX = touchStartTranslateX + deltaX;
+                        state.translateY = touchStartTranslateY + deltaY;
                         
                         // Limitar o arrasto para não sair muito da área visível
-                        const maxTranslateX = Math.max(0, (rect.width * zoomLevel - containerRect.width) / 2);
-                        const maxTranslateY = Math.max(0, (rect.height * zoomLevel - containerRect.height) / 2);
+                        const maxTranslateX = Math.max(0, (rect.width * state.zoomLevel - containerRect.width) / 2);
+                        const maxTranslateY = Math.max(0, (rect.height * state.zoomLevel - containerRect.height) / 2);
                         
-                        translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
-                        translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
+                        state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
+                        state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
                         
-                        img.style.transform = `scale(${zoomLevel}) translate(${translateX}px, ${translateY}px)`;
+                        img.style.transform = `scale(${state.zoomLevel}) translate(${state.translateX}px, ${state.translateY}px)`;
                     }
                 }, { passive: false });
                 
@@ -624,11 +654,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Função para lidar com duplo toque
                 function handleDoubleTap(touch, img) {
-                    if (zoomLevel > 1) {
+                    const state = getZoomState(img);
+                    
+                    if (state.zoomLevel > 1) {
                         // Se já estiver com zoom, volta ao normal
-                        zoomLevel = 1;
-                        translateX = 0;
-                        translateY = 0;
+                        state.zoomLevel = 1;
+                        state.translateX = 0;
+                        state.translateY = 0;
                     } else {
                         // Se estiver normal, faz zoom no ponto tocado
                         const rect = img.getBoundingClientRect();
@@ -636,21 +668,21 @@ document.addEventListener('DOMContentLoaded', function() {
                         const x = touch.clientX - rect.left;
                         const y = touch.clientY - rect.top;
                         
-                        zoomLevel = 2.5; // Nível de zoom para duplo toque
+                        state.zoomLevel = 2.5; // Nível de zoom para duplo toque
                         
                         // Ajustar posição para centralizar no ponto tocado
                         const imgCenterX = rect.width / 2;
                         const imgCenterY = rect.height / 2;
                         
-                        translateX = (imgCenterX - x) * (zoomLevel - 1) / zoomLevel;
-                        translateY = (imgCenterY - y) * (zoomLevel - 1) / zoomLevel;
+                        state.translateX = (imgCenterX - x) * (state.zoomLevel - 1) / state.zoomLevel;
+                        state.translateY = (imgCenterY - y) * (state.zoomLevel - 1) / state.zoomLevel;
                         
                         // Limitar o deslocamento
-                        const maxTranslateX = Math.max(0, (rect.width * zoomLevel - containerRect.width) / 2);
-                        const maxTranslateY = Math.max(0, (rect.height * zoomLevel - containerRect.height) / 2);
+                        const maxTranslateX = Math.max(0, (rect.width * state.zoomLevel - containerRect.width) / 2);
+                        const maxTranslateY = Math.max(0, (rect.height * state.zoomLevel - containerRect.height) / 2);
                         
-                        translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, translateX));
-                        translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, translateY));
+                        state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
+                        state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
                     }
                     
                     applyZoom(img);
@@ -661,8 +693,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         isDragging = false;
                         const activeImg = document.querySelector('.carousel-slide.active img');
                         if (activeImg) {
+                            const state = getZoomState(activeImg);
                             activeImg.style.transition = 'transform 0.3s ease';
-                            activeImg.style.cursor = zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
+                            activeImg.style.cursor = state.zoomLevel > 1 ? 'zoom-out' : 'zoom-in';
                         }
                     }
                 });
@@ -672,13 +705,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     e.preventDefault();
                     e.stopPropagation();
                     
+                    const state = getZoomState(img);
+                    
                     // Animação suave ao resetar o zoom
                     img.style.transition = 'transform 0.3s ease';
                     
                     // Resetar zoom e posição
-                    zoomLevel = 1;
-                    translateX = 0;
-                    translateY = 0;
+                    state.zoomLevel = 1;
+                    state.translateX = 0;
+                    state.translateY = 0;
                     
                     applyZoom(img);
                     
@@ -693,12 +728,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Inicializar zoom nas imagens
         setupImageZoom();
         
-        // Reset zoom quando trocar de slide
-        const originalShowSlide = showSlide;
-        showSlide = function(index) {
-            resetZoom();
-            originalShowSlide(index);
-        };
+        // Cada imagem mantém seu próprio estado de zoom
+        // Não é necessário resetar ao trocar de slide
     }
     
     // Inicializar o modal de certificados
