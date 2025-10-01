@@ -403,13 +403,15 @@ document.addEventListener('DOMContentLoaded', function() {
             let touchStartTranslateY = 0;
             let lastTap = 0;
             
-            // Adicionar eventos touch no CONTAINER (não apenas na imagem)
+            // Adicionar eventos touch no MODAL INTEIRO para máxima captura
+            const modalElement = document.getElementById('certificateModal');
             const container = document.querySelector('.carousel-container');
-            if (container) {
-                console.log('📱 Touch events configurados no container');
+            
+            if (modalElement) {
+                console.log('📱 Touch events configurados no MODAL inteiro');
                 
-                // Touch events para PINCH ZOOM em qualquer lugar
-                container.addEventListener('touchstart', function(e) {
+                // Touch events para PINCH ZOOM em qualquer lugar do modal
+                modalElement.addEventListener('touchstart', function(e) {
                     console.log(`👆 Touchstart: ${e.touches.length} dedos`);
                     const activeImg = document.querySelector('.carousel-slide.active img');
                     if (!activeImg) {
@@ -455,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, { passive: false });
                 
-                container.addEventListener('touchmove', function(e) {
+                modalElement.addEventListener('touchmove', function(e) {
                     const activeImg = document.querySelector('.carousel-slide.active img');
                     if (!activeImg) return;
                     
@@ -530,7 +532,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }, { passive: false });
                 
-                container.addEventListener('touchend', function(e) {
+                modalElement.addEventListener('touchend', function(e) {
                     const activeImg = document.querySelector('.carousel-slide.active img');
                     if (activeImg) {
                         touchStartDistance = 0;

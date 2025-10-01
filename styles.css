@@ -3096,7 +3096,13 @@ textarea:focus {
     box-sizing: border-box;
     align-items: center;
     justify-content: center;
-    touch-action: none; /* Permite eventos touch customizados */
+    touch-action: none !important; /* Permite eventos touch customizados */
+}
+
+#certificateModal {
+    touch-action: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
 }
 
 .modal[style*="display: flex"],
