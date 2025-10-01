@@ -2964,7 +2964,6 @@ textarea:focus {
     overflow: hidden;
     height: 70vh;
     width: 100%;
-    display: flex;
     align-items: center;
     justify-content: center;
 }
@@ -2976,7 +2975,7 @@ textarea:focus {
 .carousel-slide img {
     max-width: 90%;
     max-height: 90%;
-    display: block;
+    display: block !important;
     width: auto;
     height: auto;
     margin: auto;
@@ -2988,6 +2987,8 @@ textarea:focus {
     touch-action: none; /* Permite pinch zoom */
     user-select: none;
     -webkit-user-select: none;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .carousel-slide img:hover {
