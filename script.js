@@ -406,10 +406,16 @@ document.addEventListener('DOMContentLoaded', function() {
             // Adicionar eventos touch no CONTAINER (não apenas na imagem)
             const container = document.querySelector('.carousel-container');
             if (container) {
+                console.log('📱 Touch events configurados no container');
+                
                 // Touch events para PINCH ZOOM em qualquer lugar
                 container.addEventListener('touchstart', function(e) {
+                    console.log(`👆 Touchstart: ${e.touches.length} dedos`);
                     const activeImg = document.querySelector('.carousel-slide.active img');
-                    if (!activeImg) return;
+                    if (!activeImg) {
+                        console.log('⚠️ Nenhuma imagem ativa encontrada');
+                        return;
+                    }
                     
                     const state = getZoomState(activeImg);
                     
@@ -456,6 +462,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const state = getZoomState(activeImg);
                     
                     if (e.touches.length === 2) {
+                        console.log('🤏 Pinch detectado!');
                         // Pinch to zoom - movimento
                         e.preventDefault();
                         const touch1 = e.touches[0];

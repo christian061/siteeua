@@ -3096,6 +3096,7 @@ textarea:focus {
     box-sizing: border-box;
     align-items: center;
     justify-content: center;
+    touch-action: none; /* Permite eventos touch customizados */
 }
 
 .modal[style*="display: flex"],
@@ -3119,7 +3120,7 @@ textarea:focus {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    touch-action: pan-y pinch-zoom; /* Permite scroll vertical e pinch zoom */
+    touch-action: none; /* Permite eventos touch customizados */
 }
 
 .video-container {
