@@ -412,7 +412,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Touch events para PINCH ZOOM em qualquer lugar do modal
                 modalElement.addEventListener('touchstart', function(e) {
-                    console.log(`👆 Touchstart: ${e.touches.length} dedos`);
+                    console.log(`👆 Touchstart: ${e.touches.length} dedos em`, e.target.tagName);
+                    console.log('📍 Target:', e.target.className);
                     const activeImg = document.querySelector('.carousel-slide.active img');
                     if (!activeImg) {
                         console.log('⚠️ Nenhuma imagem ativa encontrada');

@@ -3010,6 +3010,20 @@ textarea:focus {
     background-color: var(--light-green);
     color: white;
     opacity: 0.9;
+    width: 55px !important;
+    height: 55px !important;
+    border-radius: 50% !important;
+    font-size: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
+    transition: all 0.3s ease !important;
+    touch-action: none !important;
+    pointer-events: auto !important;
+    z-index: 100 !important;
 }
 
 .carousel-button:hover {
@@ -3126,7 +3140,13 @@ textarea:focus {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    touch-action: none; /* Permite eventos touch customizados */
+    touch-action: none !important; /* Permite eventos touch customizados */
+    pointer-events: auto !important; /* Garante que recebe eventos */
+}
+
+.modal-content * {
+    touch-action: none !important;
+    pointer-events: auto !important;
 }
 
 .video-container {
