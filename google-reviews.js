@@ -60,33 +60,34 @@ function renderReviews(reviews) {
     
     console.log('🎯 Renderizando', reviews.length, 'avaliações em carrossel');
     
-    // Create carousel HTML
+    // Create carousel HTML with improved design
     let html = `
-        <div class="testimonial-carousel-container" style="position: relative; max-width: 1200px; margin: 0 auto; padding: 0 50px; overflow: hidden;">
-            <div class="testimonial-carousel" style="display: flex; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); overflow: visible; will-change: transform;">
+        <div class="testimonial-carousel-container" style="position: relative; max-width: 1400px; margin: 0 auto; padding: 0 60px; overflow: hidden;">
+            <div class="testimonial-carousel" style="display: flex; transition: transform 0.5s ease-out; overflow: visible; will-change: transform;">
     `;
-    
     reviews.forEach((review, index) => {
         const stars = '★'.repeat(Math.floor(review.rating)) + '☆'.repeat(5 - Math.floor(review.rating));
         const reviewDate = review.relative_time_description || 'Recently';
         html += `
             <div class="testimonial-slide" style="
-                flex: 0 0 calc(33.333% - 20px); /* 3 cards exatos no desktop */
-                width: calc(33.333% - 20px);
-                background: white; 
-                border-radius: 10px; 
-                padding: 20px; 
-                margin: 0 10px;
-                box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+                flex: 0 0 calc(33.333% - 24px);
+                width: calc(33.333% - 24px);
+                background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+                border-radius: 16px; 
+                padding: 28px; 
+                margin: 0 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
-                min-height: 300px;
+                min-height: 320px;
                 height: auto;
-                max-height: none;
                 overflow: visible;
                 box-sizing: border-box;
-            ">
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid rgba(76, 175, 80, 0.1);
+                position: relative;
+            " onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 12px 32px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06)'; this.style.borderColor='rgba(76, 175, 80, 0.3)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)'; this.style.borderColor='rgba(76, 175, 80, 0.1)'">
                 <div class="quote" style="flex-grow: 1; text-align: center;">
                     <i class="fas fa-quote-left" style="color: #4CAF50; font-size: 20px; margin-bottom: 10px; display: block;"></i>
                     <div class="testimonial-text">
@@ -133,41 +134,47 @@ function renderReviews(reviews) {
             <!-- Navigation Arrows -->
             <button class="carousel-prev" style="
                 position: absolute;
-                left: 5px;
+                left: 10px;
                 top: 50%;
                 transform: translateY(-50%);
-                background: #4CAF50;
+                background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
                 color: white;
                 border: none;
                 border-radius: 50%;
-                width: 35px;
-                height: 35px;
-                font-size: 14px;
+                width: 48px;
+                height: 48px;
+                font-size: 16px;
                 cursor: pointer;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 10;
-            " onmouseover="this.style.background='#43A047'; this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.background='#4CAF50'; this.style.transform='translateY(-50%) scale(1)'">
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            " onmouseover="this.style.background='linear-gradient(135deg, #43A047 0%, #5CB85C 100%)'; this.style.transform='translateY(-50%) scale(1.15)'; this.style.boxShadow='0 6px 20px rgba(76, 175, 80, 0.4)'" onmouseout="this.style.background='linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)'; this.style.transform='translateY(-50%) scale(1)'; this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'">
                 <i class="fas fa-chevron-left"></i>
             </button>
             
             <button class="carousel-next" style="
                 position: absolute;
-                right: 5px;
+                right: 10px;
                 top: 50%;
                 transform: translateY(-50%);
-                background: #4CAF50;
+                background: linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%);
                 color: white;
                 border: none;
                 border-radius: 50%;
-                width: 35px;
-                height: 35px;
-                font-size: 14px;
+                width: 48px;
+                height: 48px;
+                font-size: 16px;
                 cursor: pointer;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 z-index: 10;
-            " onmouseover="this.style.background='#43A047'; this.style.transform='translateY(-50%) scale(1.1)'" onmouseout="this.style.background='#4CAF50'; this.style.transform='translateY(-50%) scale(1)'">
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            " onmouseover="this.style.background='linear-gradient(135deg, #43A047 0%, #5CB85C 100%)'; this.style.transform='translateY(-50%) scale(1.15)'; this.style.boxShadow='0 6px 20px rgba(76, 175, 80, 0.4)'" onmouseout="this.style.background='linear-gradient(135deg, #4CAF50 0%, #66BB6A 100%)'; this.style.transform='translateY(-50%) scale(1)'; this.style.boxShadow='0 4px 12px rgba(76, 175, 80, 0.3)'">
                 <i class="fas fa-chevron-right"></i>
             </button>
             
