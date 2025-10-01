@@ -333,12 +333,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Fechar modal ao clicar fora do conteúdo (apenas mouse, não touch)
+        // Fechar modal ao clicar/tocar fora do conteúdo
         window.addEventListener('click', function(e) {
-            // Não fechar se for um evento touch (pode interferir com pinch zoom)
-            if (e.pointerType === 'touch') return;
-            
             if (e.target === modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                resetZoom(); // Reset zoom ao fechar
+                // Restaura a posição de rolagem ao fechar
+                if (window.innerWidth <= 768) {
+                    window.scrollTo(0, 0);
+                }
+            }
+        });
+        
+        // Adicionar também evento touch para mobile
+        window.addEventListener('touchend', function(e) {
+            // Fechar modal ao tocar fora (área escura) - apenas com 1 dedo
+            if (e.changedTouches.length === 1 && e.target === modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
                 resetZoom(); // Reset zoom ao fechar
@@ -395,9 +406,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // Adicionar funcionalidade de zoom com scroll nas imagens
+        // Adicionar funcionalidade de zoom nas imagens
         function setupImageZoom() {
-            // Variáveis para controle de touch no container
+            const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                console.log('📱 Mobile detectado - configurando zoom touch no modal');
+                setupMobileZoom();
+            } else {
+                console.log('🖥️ Desktop detectado - configurando zoom mouse no modal');
+                setupDesktopZoom();
+            }
+        }
+        
+        // Função para zoom mobile (touch)
+        function setupMobileZoom() {
+            const modalElement = document.getElementById('certificateModal');
+            
+            if (!modalElement) return;
+            
             let touchStartDistance = 0;
             let touchStartZoom = 1;
             let touchStartX = 0;
@@ -406,150 +433,137 @@ document.addEventListener('DOMContentLoaded', function() {
             let touchStartTranslateY = 0;
             let lastTap = 0;
             
-            // Adicionar eventos touch no MODAL INTEIRO para máxima captura
-            const modalElement = document.getElementById('certificateModal');
-            const container = document.querySelector('.carousel-container');
-            
-            if (modalElement) {
-                console.log('📱 Touch events configurados no MODAL inteiro');
+            // Touch events para PINCH ZOOM em qualquer lugar do modal
+            modalElement.addEventListener('touchstart', function(e) {
+                console.log(`👆 Mobile Touchstart: ${e.touches.length} dedos`);
+                const activeImg = document.querySelector('.carousel-slide.active img');
+                if (!activeImg) return;
                 
-                // Touch events para PINCH ZOOM em qualquer lugar do modal
-                modalElement.addEventListener('touchstart', function(e) {
-                    console.log(`👆 Touchstart: ${e.touches.length} dedos em`, e.target.tagName);
-                    console.log('📍 Target:', e.target.className);
-                    console.log('🎯 Modal recebeu touch event!');
-                    
-                    const activeImg = document.querySelector('.carousel-slide.active img');
-                    if (!activeImg) {
-                        console.log('⚠️ Nenhuma imagem ativa encontrada');
-                        return;
-                    }
-                    
-                    const state = getZoomState(activeImg);
-                    
-                    if (e.touches.length === 2) {
-                        console.log('🎯 2 DEDOS DETECTADOS - INICIANDO ZOOM!');
-                        // Pinch to zoom - início
-                        e.preventDefault();
-                        e.stopPropagation();
-                        const touch1 = e.touches[0];
-                        const touch2 = e.touches[1];
-                        touchStartDistance = Math.hypot(
-                            touch2.clientX - touch1.clientX,
-                            touch2.clientY - touch1.clientY
-                        );
-                        touchStartZoom = state.zoomLevel;
-                        activeImg.style.transition = 'none';
-                    } else if (e.touches.length === 1) {
-                        if (state.zoomLevel > 1) {
-                            // Single touch drag quando com zoom
-                            e.preventDefault();
-                            isDragging = true;
-                            const touch = e.touches[0];
-                            touchStartX = touch.clientX;
-                            touchStartY = touch.clientY;
-                            touchStartTranslateX = state.translateX;
-                            touchStartTranslateY = state.translateY;
-                            activeImg.style.transition = 'none';
-                            activeImg.classList.add('dragging');
-                        }
-                        
-                        // Detectar duplo toque
-                        const currentTime = new Date().getTime();
-                        const tapLength = currentTime - lastTap;
-                        if (tapLength < 300 && tapLength > 0) {
-                            e.preventDefault();
-                            handleDoubleTap(e.touches[0], activeImg);
-                        }
-                        lastTap = currentTime;
-                    }
-                }, { passive: false });
+                const state = getZoomState(activeImg);
                 
-                modalElement.addEventListener('touchmove', function(e) {
-                    const activeImg = document.querySelector('.carousel-slide.active img');
-                    if (!activeImg) return;
+                if (e.touches.length === 2) {
+                    console.log('🤏 PINCH ZOOM INICIADO!');
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    const state = getZoomState(activeImg);
-                    
-                    if (e.touches.length === 2) {
-                        console.log('🤏 Pinch detectado!');
-                        // Pinch to zoom - movimento
-                        e.preventDefault();
-                        const touch1 = e.touches[0];
-                        const touch2 = e.touches[1];
-                        const currentDistance = Math.hypot(
-                            touch2.clientX - touch1.clientX,
-                            touch2.clientY - touch1.clientY
-                        );
-                        
-                        if (touchStartDistance > 0) {
-                            const scale = currentDistance / touchStartDistance;
-                            const newZoomLevel = Math.max(1, Math.min(3, touchStartZoom * scale));
-                            
-                            // Calcular o ponto médio entre os dedos
-                            const rect = activeImg.getBoundingClientRect();
-                            const midX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
-                            const midY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
-                            
-                            // Ajustar posição para manter o zoom centrado no ponto médio
-                            if (newZoomLevel > 1) {
-                                const containerRect = activeImg.parentElement.getBoundingClientRect();
-                                const imgCenterX = rect.width / 2;
-                                const imgCenterY = rect.height / 2;
-                                
-                                state.translateX = (imgCenterX - midX) * (newZoomLevel - 1) / newZoomLevel;
-                                state.translateY = (imgCenterY - midY) * (newZoomLevel - 1) / newZoomLevel;
-                                
-                                // Limitar o deslocamento
-                                const maxTranslateX = Math.max(0, (rect.width * newZoomLevel - containerRect.width) / 2);
-                                const maxTranslateY = Math.max(0, (rect.height * newZoomLevel - containerRect.height) / 2);
-                                
-                                state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
-                                state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
-                            } else {
-                                state.translateX = 0;
-                                state.translateY = 0;
-                            }
-                            
-                            state.zoomLevel = newZoomLevel;
-                            applyZoom(activeImg);
-                        }
-                    } else if (e.touches.length === 1 && isDragging && state.zoomLevel > 1) {
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    touchStartDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    touchStartZoom = state.zoomLevel;
+                    activeImg.style.transition = 'none';
+                } else if (e.touches.length === 1) {
+                    if (state.zoomLevel > 1) {
                         // Single touch drag quando com zoom
                         e.preventDefault();
+                        isDragging = true;
                         const touch = e.touches[0];
-                        
-                        const rect = activeImg.getBoundingClientRect();
-                        const containerRect = activeImg.parentElement.getBoundingClientRect();
-                        
-                        // Calcular nova posição baseada no movimento do dedo
-                        const deltaX = touch.clientX - touchStartX;
-                        const deltaY = touch.clientY - touchStartY;
-                        
-                        state.translateX = touchStartTranslateX + deltaX;
-                        state.translateY = touchStartTranslateY + deltaY;
-                        
-                        // Limitar o arrasto para não sair muito da área visível
-                        const maxTranslateX = Math.max(0, (rect.width * state.zoomLevel - containerRect.width) / 2);
-                        const maxTranslateY = Math.max(0, (rect.height * state.zoomLevel - containerRect.height) / 2);
-                        
-                        state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
-                        state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
-                        
-                        activeImg.style.transform = `scale(${state.zoomLevel}) translate(${state.translateX}px, ${state.translateY}px)`;
+                        touchStartX = touch.clientX;
+                        touchStartY = touch.clientY;
+                        touchStartTranslateX = state.translateX;
+                        touchStartTranslateY = state.translateY;
+                        activeImg.style.transition = 'none';
+                        activeImg.classList.add('dragging');
                     }
-                }, { passive: false });
+                    
+                    // Detectar duplo toque
+                    const currentTime = new Date().getTime();
+                    const tapLength = currentTime - lastTap;
+                    if (tapLength < 300 && tapLength > 0) {
+                        e.preventDefault();
+                        handleDoubleTap(e.touches[0], activeImg);
+                    }
+                    lastTap = currentTime;
+                }
+            }, { passive: false });
+            
+            modalElement.addEventListener('touchmove', function(e) {
+                const activeImg = document.querySelector('.carousel-slide.active img');
+                if (!activeImg) return;
                 
-                modalElement.addEventListener('touchend', function(e) {
-                    const activeImg = document.querySelector('.carousel-slide.active img');
-                    if (activeImg) {
-                        touchStartDistance = 0;
-                        isDragging = false;
-                        activeImg.style.transition = 'transform 0.3s ease';
-                        activeImg.classList.remove('dragging');
+                const state = getZoomState(activeImg);
+                
+                if (e.touches.length === 2) {
+                    console.log('🔍 Pinch zoom em movimento!');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    const currentDistance = Math.hypot(
+                        touch2.clientX - touch1.clientX,
+                        touch2.clientY - touch1.clientY
+                    );
+                    
+                    if (touchStartDistance > 0) {
+                        const scale = currentDistance / touchStartDistance;
+                        const newZoomLevel = Math.max(1, Math.min(3, touchStartZoom * scale));
+                        
+                        // Calcular o ponto médio entre os dedos
+                        const rect = activeImg.getBoundingClientRect();
+                        const midX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                        const midY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                        
+                        // Ajustar posição para manter o zoom centrado no ponto médio
+                        if (newZoomLevel > 1) {
+                            const containerRect = activeImg.parentElement.getBoundingClientRect();
+                            const imgCenterX = rect.width / 2;
+                            const imgCenterY = rect.height / 2;
+                            
+                            state.translateX = (imgCenterX - midX) * (newZoomLevel - 1) / newZoomLevel;
+                            state.translateY = (imgCenterY - midY) * (newZoomLevel - 1) / newZoomLevel;
+                            
+                            // Limitar o deslocamento
+                            const maxTranslateX = Math.max(0, (rect.width * newZoomLevel - containerRect.width) / 2);
+                            const maxTranslateY = Math.max(0, (rect.height * newZoomLevel - containerRect.height) / 2);
+                            
+                            state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
+                            state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
+                        } else {
+                            state.translateX = 0;
+                            state.translateY = 0;
+                        }
+                        
+                        state.zoomLevel = newZoomLevel;
+                        applyZoom(activeImg);
                     }
-                }, { passive: false });
-            }
+                } else if (e.touches.length === 1 && isDragging && state.zoomLevel > 1) {
+                    // Single touch drag quando com zoom
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    
+                    const rect = activeImg.getBoundingClientRect();
+                    const containerRect = activeImg.parentElement.getBoundingClientRect();
+                    
+                    // Calcular nova posição baseada no movimento do dedo
+                    const deltaX = touch.clientX - touchStartX;
+                    const deltaY = touch.clientY - touchStartY;
+                    
+                    state.translateX = touchStartTranslateX + deltaX;
+                    state.translateY = touchStartTranslateY + deltaY;
+                    
+                    // Limitar o arrasto para não sair muito da área visível
+                    const maxTranslateX = Math.max(0, (rect.width * state.zoomLevel - containerRect.width) / 2);
+                    const maxTranslateY = Math.max(0, (rect.height * state.zoomLevel - containerRect.height) / 2);
+                    
+                    state.translateX = Math.max(-maxTranslateX, Math.min(maxTranslateX, state.translateX));
+                    state.translateY = Math.max(-maxTranslateY, Math.min(maxTranslateY, state.translateY));
+                    
+                    activeImg.style.transform = `scale(${state.zoomLevel}) translate(${state.translateX}px, ${state.translateY}px)`;
+                }
+            }, { passive: false });
+            
+            modalElement.addEventListener('touchend', function(e) {
+                const activeImg = document.querySelector('.carousel-slide.active img');
+                if (activeImg) {
+                    touchStartDistance = 0;
+                    isDragging = false;
+                    activeImg.style.transition = 'transform 0.3s ease';
+                    activeImg.classList.remove('dragging');
+                }
+            }, { passive: false });
             
             // Função para lidar com duplo toque
             function handleDoubleTap(touch, img) {
@@ -584,6 +598,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 applyZoom(img);
             }
+        }
+        
+        // Função para zoom desktop (mouse)
+        function setupDesktopZoom() {
             
             slides.forEach(slide => {
                 const img = slide.querySelector('img');
@@ -693,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     activeImg.style.transform = `scale(${state.zoomLevel}) translate(${state.translateX}px, ${state.translateY}px)`;
                 });
                 
-                // Touch events agora estão no container, não nas imagens individuais
+                // Zoom disponível apenas no desktop
                 
                 document.addEventListener('mouseup', function() {
                     if (isDragging) {

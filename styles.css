@@ -2947,7 +2947,6 @@ textarea:focus {
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-    touch-action: none; /* Permite pinch zoom em mobile */
 }
 
 .carousel-slides {
@@ -2982,13 +2981,18 @@ textarea:focus {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     transition: box-shadow 0.3s ease;
-    cursor: zoom-in;
     object-fit: contain;
-    touch-action: none; /* Permite pinch zoom */
     user-select: none;
     -webkit-user-select: none;
     visibility: visible !important;
     opacity: 1 !important;
+}
+
+/* Cursor zoom apenas no desktop */
+@media (min-width: 769px) {
+    .carousel-slide img {
+        cursor: zoom-in;
+    }
 }
 
 .carousel-slide img:hover {
@@ -3021,7 +3025,6 @@ textarea:focus {
     cursor: pointer !important;
     box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3) !important;
     transition: all 0.3s ease !important;
-    touch-action: none !important;
     pointer-events: auto !important;
     z-index: 100 !important;
 }
@@ -3107,16 +3110,26 @@ textarea:focus {
     opacity: 0;
     transition: opacity 0.3s ease-in-out;
     padding: 20px;
-    box-sizing: border-box;
     align-items: center;
     justify-content: center;
-    touch-action: none !important; /* Permite eventos touch customizados */
 }
 
-#certificateModal {
-    touch-action: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
+/* Desktop: zoom customizado */
+@media (min-width: 769px) {
+    #certificateModal {
+        touch-action: none !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+    }
+}
+
+/* Mobile: zoom customizado no modal */
+@media (max-width: 768px) {
+    #certificateModal {
+        touch-action: none !important;
+        -webkit-user-select: none !important;
+        user-select: none !important;
+    }
 }
 
 .modal[style*="display: flex"],
@@ -3140,13 +3153,31 @@ textarea:focus {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    touch-action: none !important; /* Permite eventos touch customizados */
     pointer-events: auto !important; /* Garante que recebe eventos */
 }
 
-.modal-content * {
-    touch-action: none !important;
-    pointer-events: auto !important;
+/* Desktop: zoom customizado */
+@media (min-width: 769px) {
+    .modal-content {
+        touch-action: none !important;
+    }
+    
+    .modal-content * {
+        touch-action: none !important;
+        pointer-events: auto !important;
+    }
+}
+
+/* Mobile: zoom customizado no modal */
+@media (max-width: 768px) {
+    .modal-content {
+        touch-action: none !important;
+    }
+    
+    .modal-content * {
+        touch-action: none !important;
+        pointer-events: auto !important;
+    }
 }
 
 .video-container {
@@ -3256,13 +3287,13 @@ textarea:focus {
     .carousel-container {
         max-width: 100%;
         margin: 10px 0;
-        touch-action: none; /* Permite rolagem e zoom personalizado */
+        touch-action: auto; /* Comportamento padrão no mobile */
         overflow: hidden; /* Evita scroll desnecessário */
     }
     
     .carousel-slide {
         height: 60vh; /* Aumenta um pouco a altura para melhor visualização */
-        touch-action: none; /* Desabilita o zoom padrão do navegador */
+        touch-action: auto; /* Permite comportamento padrão no mobile */
         overflow: hidden; /* Evita que a imagem saia da área visível */
         position: relative;
     }
