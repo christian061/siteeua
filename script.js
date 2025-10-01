@@ -333,8 +333,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // Fechar modal ao clicar fora do conteúdo
+        // Fechar modal ao clicar fora do conteúdo (apenas mouse, não touch)
         window.addEventListener('click', function(e) {
+            // Não fechar se for um evento touch (pode interferir com pinch zoom)
+            if (e.pointerType === 'touch') return;
+            
             if (e.target === modal) {
                 modal.style.display = 'none';
                 document.body.style.overflow = 'auto';
@@ -414,6 +417,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalElement.addEventListener('touchstart', function(e) {
                     console.log(`👆 Touchstart: ${e.touches.length} dedos em`, e.target.tagName);
                     console.log('📍 Target:', e.target.className);
+                    console.log('🎯 Modal recebeu touch event!');
+                    
                     const activeImg = document.querySelector('.carousel-slide.active img');
                     if (!activeImg) {
                         console.log('⚠️ Nenhuma imagem ativa encontrada');
@@ -423,8 +428,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     const state = getZoomState(activeImg);
                     
                     if (e.touches.length === 2) {
+                        console.log('🎯 2 DEDOS DETECTADOS - INICIANDO ZOOM!');
                         // Pinch to zoom - início
                         e.preventDefault();
+                        e.stopPropagation();
                         const touch1 = e.touches[0];
                         const touch2 = e.touches[1];
                         touchStartDistance = Math.hypot(
