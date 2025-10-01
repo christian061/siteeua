@@ -655,12 +655,12 @@ function initializeCarousel(totalSlides) {
     
     if (!carousel || !prevBtn || !nextBtn) return;
     
-    // Configurações do carrossel contínuo - MOBILE OTIMIZADO
+    // Configurações do carrossel VERDADEIRAMENTE CONTÍNUO - ULTRA RÁPIDO
     const isMobile = window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const autoPlayDelay = isMobile ? 3000 : 3500; // 3 segundos no mobile, 3.5 no desktop
-    const pauseOnHover = false; // NÃO pausar ao passar o mouse
-    const pauseOnInteraction = false; // NÃO pausar ao interagir
-    const progressUpdateInterval = 50; // Atualizar progresso a cada 50ms
+    const autoPlayDelay = isMobile ? 2000 : 2500; // Mobile ainda mais rápido: 2s, Desktop: 2.5s
+    const pauseOnHover = false; // NUNCA pausar ao passar o mouse
+    const pauseOnInteraction = false; // NUNCA pausar ao interagir
+    const progressUpdateInterval = 20; // Atualizar progresso a cada 20ms - ULTRA SUAVE
     
     function updateCarousel(smooth = true) {
         // Para desktop com 3 cards, mover 33.333% por vez
@@ -669,12 +669,17 @@ function initializeCarousel(totalSlides) {
         const translateX = -currentSlide * movePercentage;
         
         if (smooth) {
-            carousel.style.transition = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+            carousel.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)'; // Transição mais rápida e suave
         } else {
             carousel.style.transition = 'none';
         }
         
         carousel.style.transform = `translateX(${translateX}%)`;
+        
+        // Otimizar performance para carrossel contínuo
+        carousel.style.willChange = 'transform';
+        carousel.style.backfaceVisibility = 'hidden';
+        carousel.style.perspective = '1000px';
         
         // Update dots with smooth animation
         dots.forEach((dot, index) => {
@@ -740,16 +745,22 @@ function initializeCarousel(totalSlides) {
         }
     }
     
-    // Função para iniciar o auto-play
+    // Função para iniciar o auto-play com proteção contra erros
     function startAutoPlay() {
         if (autoPlayInterval) clearInterval(autoPlayInterval);
         startProgress(); // Iniciar barra de progresso
         
         autoPlayInterval = setInterval(() => {
-            nextSlide();
-            startProgress(); // Reiniciar progresso para o próximo slide
+            try {
+                nextSlide();
+                startProgress(); // Reiniciar progresso para o próximo slide
+            } catch (error) {
+                console.warn('⚠️ Erro no carrossel, mas continuando:', error);
+                // Carrossel continua mesmo com erro
+            }
         }, autoPlayDelay);
         console.log('🎠 Auto-play CONTÍNUO iniciado - mudança a cada', autoPlayDelay / 1000, 'segundos');
+        console.log('🛡️ Proteção contra erros ativada - carrossel nunca para');
     }
     
     // Função para parar o auto-play
@@ -836,23 +847,50 @@ function initializeCarousel(totalSlides) {
         }, { passive: true });
     }
     
-    // Pausar quando a aba não está visível
+    // CARROSSEL SEMPRE CONTÍNUO - nunca pausar, mesmo quando aba não está visível
     document.addEventListener('visibilitychange', () => {
-        if (document.hidden) {
-            stopAutoPlay();
-        } else {
-            startAutoPlay();
-        }
+        console.log('🎠 Aba mudou visibilidade - carrossel continua rodando');
+        // Não parar o carrossel - sempre contínuo
     });
+    
+    // Sistema de monitoramento para garantir que nunca pare
+    let lastSlideTime = Date.now();
+    let monitoringInterval;
+    
+    function startMonitoring() {
+        if (monitoringInterval) clearInterval(monitoringInterval);
+        
+        monitoringInterval = setInterval(() => {
+            const now = Date.now();
+            const timeSinceLastSlide = now - lastSlideTime;
+            
+            // Se passou mais de 5 segundos sem mudança, reiniciar
+            if (timeSinceLastSlide > autoPlayDelay + 2000) {
+                console.warn('🚨 Carrossel parou! Reiniciando...');
+                startAutoPlay();
+                lastSlideTime = now;
+            }
+        }, 1000); // Verificar a cada segundo
+    }
+    
+    // Atualizar timestamp quando slide muda
+    const originalNextSlide = nextSlide;
+    nextSlide = function(smooth = true) {
+        lastSlideTime = Date.now();
+        return originalNextSlide(smooth);
+    };
     
     // Inicializar o carrossel
     updateCarousel(false); // Primeira atualização sem animação
     startAutoPlay(); // Iniciar auto-play
+    startMonitoring(); // Iniciar monitoramento
     
-    console.log('🎉 Carrossel CONTÍNUO inicializado com', totalSlides, 'slides');
-    console.log('⏱️ Auto-play:', autoPlayDelay / 1000, 'segundos por slide');
+    console.log('🎉 Carrossel VERDADEIRAMENTE CONTÍNUO inicializado com', totalSlides, 'slides');
+    console.log('⚡ Auto-play ULTRA RÁPIDO:', autoPlayDelay / 1000, 'segundos por slide');
+    console.log('🏃‍♂️ Transição suave:', '0.4s cubic-bezier');
+    console.log('📊 Progresso atualizado a cada:', progressUpdateInterval, 'ms');
     console.log('📱 Mobile:', isMobile);
-    console.log('🚫 Pausas desabilitadas - carrossel verdadeiramente contínuo');
+    console.log('🚫 ZERO pausas - carrossel SEMPRE em movimento');
     console.log('🎛️ Controles encontrados:', {
         carousel: !!carousel,
         prevBtn: !!prevBtn,

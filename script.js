@@ -429,6 +429,18 @@ document.addEventListener('DOMContentLoaded', function() {
         function setupMobileZoom() {
             console.log('🔧 Configurando zoom mobile...');
             
+            // TESTE SIMPLES: Adicionar listener no document para capturar TUDO
+            document.addEventListener('touchstart', function(e) {
+                const modal = document.getElementById('certificateModal');
+                const modalOpen = modal && (modal.style.display === 'flex' || modal.style.display === 'block');
+                
+                if (modalOpen && e.touches.length === 2) {
+                    console.log('🧪 TESTE DOCUMENT: 2 dedos detectados no modal!');
+                    console.log('🧪 Target:', e.target.tagName, e.target.className);
+                    console.log('🧪 Cancelable:', e.cancelable);
+                }
+            }, { passive: false, capture: true });
+            
             let touchStartDistance = 0;
             let touchStartZoom = 1;
             let touchStartX = 0;
@@ -453,11 +465,12 @@ document.addEventListener('DOMContentLoaded', function() {
             // Touch events no MODAL ELEMENT com registro IMEDIATO
             const modalElement = document.getElementById('certificateModal');
             
-            // Registrar eventos IMEDIATAMENTE quando modal abre
+            // Sistema de zoom SIMPLIFICADO e DIRETO
             modalElement.addEventListener('touchstart', function(e) {
                 if (!isModalOpen) return;
                 
                 console.log(`👆 MODAL TOUCHSTART: ${e.touches.length} dedos`);
+                console.log('🎯 Target:', e.target.tagName, e.target.className);
                 
                 const activeImg = document.querySelector('.carousel-slide.active img');
                 if (!activeImg) {
@@ -470,9 +483,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (e.touches.length === 2) {
                     console.log('🤏 PINCH ZOOM INICIADO!');
                     console.log('🔧 Event cancelable:', e.cancelable);
-                    if (e.cancelable) {
+                    console.log('🔧 Event type:', e.type);
+                    console.log('🔧 Event bubbles:', e.bubbles);
+                    
+                    // FORÇAR preventDefault independente de cancelable
+                    try {
                         e.preventDefault();
                         e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        console.log('✅ preventDefault aplicado com sucesso');
+                    } catch (err) {
+                        console.warn('⚠️ Erro ao aplicar preventDefault:', err);
                     }
                     
                     const touch1 = e.touches[0];
@@ -519,9 +540,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (e.touches.length === 2) {
                     console.log('🔍 PINCH ZOOM EM MOVIMENTO!');
                     console.log('🔧 Event cancelable:', e.cancelable);
-                    if (e.cancelable) {
+                    
+                    // FORÇAR preventDefault independente de cancelable
+                    try {
                         e.preventDefault();
                         e.stopPropagation();
+                        e.stopImmediatePropagation();
+                        console.log('✅ touchmove preventDefault aplicado');
+                    } catch (err) {
+                        console.warn('⚠️ Erro no touchmove preventDefault:', err);
                     }
                     
                     const touch1 = e.touches[0];
@@ -1175,19 +1202,31 @@ function setupHeroCleaningEffect() {
     let isHorizontalMove = false;
     
     hero.addEventListener('touchstart', (e) => {
+        // NÃO interferir se modal estiver aberto
+        const modal = document.getElementById('certificateModal');
+        if (modal && (modal.style.display === 'flex' || modal.style.display === 'block')) {
+            return; // Deixar o modal lidar com touch events
+        }
+        
         touchStartY = e.touches[0].clientY;
         touchStartX = e.touches[0].clientX;
         isHorizontalMove = false;
     });
     
     hero.addEventListener('touchmove', (e) => {
+        // NÃO interferir se modal estiver aberto
+        const modal = document.getElementById('certificateModal');
+        if (modal && (modal.style.display === 'flex' || modal.style.display === 'block')) {
+            return; // Deixar o modal lidar com touch events
+        }
+        
         const touch = e.touches[0];
         const deltaY = Math.abs(touch.clientY - touchStartY);
         const deltaX = Math.abs(touch.clientX - touchStartX);
         
         // Determine if this is primarily a vertical scroll
         if (deltaY > deltaX && deltaY > 10) {
-            // This is a vertical scroll - allow it and don't trigger cleaning
+            // This is vertical scrolling, allow it
             return;
         } else if (deltaX > 10 || deltaY > 10) {
             // This is horizontal movement or intentional cleaning gesture
@@ -1202,12 +1241,17 @@ function setupHeroCleaningEffect() {
     });
     
     hero.addEventListener('touchend', (e) => {
+        // NÃO interferir se modal estiver aberto
+        const modal = document.getElementById('certificateModal');
+        if (modal && (modal.style.display === 'flex' || modal.style.display === 'block')) {
+            return; // Deixar o modal lidar com touch events
+        }
+        
         if (isHorizontalMove) {
             e.preventDefault();
         }
         stopCleaning();
     });
-    
     // Initialize CSS custom properties
     hero.style.setProperty('--mx', '50%');
     hero.style.setProperty('--my', '50%');
