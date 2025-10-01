@@ -450,13 +450,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             observer.observe(modal, { attributes: true });
             
-            // Touch events no WINDOW com captura para interceptar tudo
-            window.addEventListener('touchstart', function(e) {
-                console.log(`🧪 TOUCHSTART GLOBAL: ${e.touches.length} dedos, modal: ${isModalOpen}`);
-                
+            // Touch events no MODAL ELEMENT com registro IMEDIATO
+            const modalElement = document.getElementById('certificateModal');
+            
+            // Registrar eventos IMEDIATAMENTE quando modal abre
+            modalElement.addEventListener('touchstart', function(e) {
                 if (!isModalOpen) return;
                 
-                console.log(`👆 WINDOW TOUCHSTART: ${e.touches.length} dedos`);
+                console.log(`👆 MODAL TOUCHSTART: ${e.touches.length} dedos`);
                 
                 const activeImg = document.querySelector('.carousel-slide.active img');
                 if (!activeImg) {
@@ -468,8 +469,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (e.touches.length === 2) {
                     console.log('🤏 PINCH ZOOM INICIADO!');
-                    e.preventDefault();
-                    e.stopPropagation();
+                    console.log('🔧 Event cancelable:', e.cancelable);
+                    if (e.cancelable) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                     
                     const touch1 = e.touches[0];
                     const touch2 = e.touches[1];
@@ -504,7 +508,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, { passive: false, capture: true });
             
-            window.addEventListener('touchmove', function(e) {
+            modalElement.addEventListener('touchmove', function(e) {
                 if (!isModalOpen) return;
                 
                 const activeImg = document.querySelector('.carousel-slide.active img');
@@ -514,8 +518,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 if (e.touches.length === 2) {
                     console.log('🔍 PINCH ZOOM EM MOVIMENTO!');
-                    e.preventDefault();
-                    e.stopPropagation();
+                    console.log('🔧 Event cancelable:', e.cancelable);
+                    if (e.cancelable) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
                     
                     const touch1 = e.touches[0];
                     const touch2 = e.touches[1];
@@ -582,7 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }, { passive: false, capture: true });
             
-            window.addEventListener('touchend', function(e) {
+            modalElement.addEventListener('touchend', function(e) {
                 if (!isModalOpen) return;
                 
                 const activeImg = document.querySelector('.carousel-slide.active img');
